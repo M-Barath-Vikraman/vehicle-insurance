@@ -30,7 +30,7 @@ const Login = () => {
     return (
         <LoginWrapper>
             <LoginContainer>
-                <LoginTitle>Login to InsurExceed</LoginTitle>
+                <LoginTitle>Login for InsurExceed</LoginTitle>
                 <LoginForm onSubmit={handleSubmit}>
                     <LoginInput
                         type="email"
