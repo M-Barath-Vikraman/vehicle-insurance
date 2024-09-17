@@ -3,6 +3,7 @@ import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import BackgroundImage from './image.png'; // Image is in the same folder as Login.jsx
 
+
 const Login = () => {
     const [formData, setFormData] = useState({
         email: '',
@@ -35,7 +36,7 @@ const Login = () => {
                     <LoginInput
                         type="email"
                         name="email"
-                        placeholder="Email"
+                        placeholder="Enter your email here"
                         value={formData.email}
                         onChange={handleChange}
                         required
