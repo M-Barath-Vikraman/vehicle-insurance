@@ -34,7 +34,12 @@ app.get('/api/validate-vehicle/:vehicleNumber', async (req, res) => {
     try {
         const vehicle = await Vehicle.findOne({ vehicleNumber });
         if (vehicle) {
-            res.json({ valid: true, vehicle });
+            res.status(200).json({
+                valid: true,
+                carModel: vehicle.model,
+                brandName: vehicle.brandName,
+                
+            });
         } else {
             res.status(404).json({ valid: false, message: 'Vehicle not found' });
         }

@@ -7,7 +7,7 @@ import RightSideImage from '../logo.png'; // Ensure correct path
 const CarDetail = () => {
     const location = useLocation();
     const navigate = useNavigate();
-    const carNumber = location.state?.carNumber; // Optional chaining to safely access carNumber
+    const { carNumber, carModel, brandName } = location.state || {};// Optional chaining to safely access carNumber
 
     const [yearMonth, setYearMonth] = useState('');
     const [expiryDate, setExpiryDate] = useState('');
@@ -68,7 +68,10 @@ const CarDetail = () => {
                         <CarDetails>
                             <CarImageIcon src={CarImage} alt="Car Icon" />
                             <Details>
-                                <p><strong>Brand:</strong> Skoda / <strong>Model:</strong> Slavia / <strong>Variant:</strong> Topend</p>
+                                <p>
+                                    <strong>Brand:</strong> {brandName || 'Unknown Brand'} / 
+                                    <strong>Model:</strong> {carModel || 'Unknown Model'}
+                                </p>
                             </Details>
                         </CarDetails>
                         <p><strong>Confirm Your Details and See the Price</strong></p>

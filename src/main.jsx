@@ -6,6 +6,8 @@ import InsuranceImage from './Insurance-Image-1.png'; // Ensure this path is cor
 const MainContent = () => {
     const navigate = useNavigate();
     const [carNumber, setCarNumber] = useState('');
+    const [carModel, setCarModel] = useState(''); 
+    const [brandName, setBrandName] = useState(''); 
     const [errorMessage, setErrorMessage] = useState('');
 
     const handleInputChange = (e) => {
@@ -25,12 +27,15 @@ const MainContent = () => {
             return;
         }
         try {
-            const response = await fetch(`/api/validate-vehicle/${carNumber}`);
+            const response = await fetch(`http://localhost:5000/api/validate-vehicle/${carNumber}`);
             const data = await response.json();
 
             if (response.ok && data.valid) {
+                setCarModel(data.carModel);  
+                setBrandName(data.brandName); 
                 setErrorMessage('');
-                navigate('/car-detail', { state: { carNumber } });
+
+                navigate('/car-detail', { state: { carNumber, carModel, brandName } });
             } else if (response.status === 404) {
                 setErrorMessage('Incorrect car registration number.');
             } else {
@@ -58,7 +63,7 @@ const MainContent = () => {
                     <FormLabel>Your Car Registration Number</FormLabel>
                     <Input 
                         type="text" 
-                        placeholder="TN36H6005" 
+                        placeholder="Your Car Number Here" 
                         value={carNumber} 
                         onChange={handleInputChange}
                     />
