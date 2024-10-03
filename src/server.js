@@ -46,6 +46,7 @@ app.get('/api/validate-vehicle/:vehicleNumber', async (req, res) => {
     } catch (err) {
         res.status(500).json({ message: 'Server error', error: err });
     }
+    
 });
 
 app.listen(port, () => {

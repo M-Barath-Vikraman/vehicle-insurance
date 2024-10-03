@@ -33,9 +33,8 @@ const MainContent = () => {
             if (response.ok && data.valid) {
                 setCarModel(data.carModel);  
                 setBrandName(data.brandName); 
-                setErrorMessage('');
-
-                navigate('/car-detail', { state: { carNumber, carModel, brandName } });
+                setErrorMessage('');           
+                navigate('/car-detail', { state: { carNumber, carModel:data.carModel, brandName:data.brandName } });
             } else if (response.status === 404) {
                 setErrorMessage('Incorrect car registration number.');
             } else {
