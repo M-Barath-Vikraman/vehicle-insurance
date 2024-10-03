@@ -8,52 +8,52 @@ const PriceList = () => {
     const insuranceOptions = [
         {
             title: 'Basic Coverage',
-            description: 'Provides minimal protection, covering the essentials like liability and limited collision.',
+            description: 'Covers liability and limited collision.',
             price: '₹2,000'
         },
         {
             title: 'Standard Coverage',
-            description: 'A balanced plan covering liability, collision, and theft protection with higher limits.',
+            description: 'Includes liability, collision, and theft protection.',
             price: '₹4,500'
         },
         {
             title: 'Comprehensive Coverage',
-            description: 'Offers extensive protection, covering non-collision incidents such as natural disasters, vandalism, and theft.',
+            description: 'Offers full protection, including natural disasters.',
             price: '₹7,000'
         },
         {
             title: 'Third-Party Liability',
-            description: 'Covers damages and injuries you cause to others in an accident.',
+            description: 'Covers damages you cause to others.',
             price: '₹3,000'
         },
         {
             title: 'Collision Coverage',
-            description: 'Pays for repairs to your car after an accident, regardless of fault.',
+            description: 'Pays for repairs after an accident.',
             price: '₹5,500'
         },
         {
             title: 'Theft Protection',
-            description: 'Covers your vehicle if it is stolen or damaged in an attempted theft.',
+            description: 'Covers your vehicle in case of theft.',
             price: '₹4,000'
         },
         {
             title: 'Fire and Theft Coverage',
-            description: 'Provides coverage if your car is damaged by fire or theft, but not from collision.',
+            description: 'Covers fire and theft damages, excluding collisions.',
             price: '₹3,500'
         },
         {
             title: 'Personal Injury Protection',
-            description: 'Covers medical expenses and lost wages for you and your passengers, regardless of fault.',
+            description: 'Covers medical expenses regardless of fault.',
             price: '₹6,000'
         },
         {
             title: 'Uninsured Motorist Coverage',
-            description: 'Protects you if you’re hit by a driver with no insurance or insufficient coverage.',
+            description: 'Protects you against uninsured drivers.',
             price: '₹4,500'
         },
         {
             title: 'Roadside Assistance',
-            description: 'Offers services like towing, flat tire changes, and fuel delivery if you break down.',
+            description: 'Includes towing, flat tire changes, and more.',
             price: '₹1,500'
         }
     ];
@@ -67,12 +67,14 @@ const PriceList = () => {
             <Title>Available Insurance Plans</Title>
             <InsuranceList>
                 {insuranceOptions.map((insurance, index) => (
-                    <InsuranceCard key={index}>
-                        <InsuranceTitle>{insurance.title}</InsuranceTitle>
-                        <Description>{insurance.description}</Description>
+                    <InsuranceItem key={index}>
+                        <Details>
+                            <InsuranceTitle>{insurance.title}</InsuranceTitle>
+                            <Description>{insurance.description}</Description>
+                        </Details>
                         <Price>{insurance.price}</Price>
                         <InsureButton onClick={() => handleInsureClick(insurance)}>Insure</InsureButton>
-                    </InsuranceCard>
+                    </InsuranceItem>
                 ))}
             </InsuranceList>
         </Container>
@@ -88,60 +90,64 @@ const Container = styled.div`
 const Title = styled.h1`
     font-size: 24px;
     margin-bottom: 20px;
+    text-align: center;
 `;
 
-const InsuranceList = styled.div`
+const InsuranceList = styled.ul`
+    list-style-type: none;
+    padding: 0;
+`;
+
+const InsuranceItem = styled.li`
     display: flex;
-    flex-wrap: wrap;
-    gap: 20px;
-`;
-
-const InsuranceCard = styled.div`
+    justify-content: space-between;
+    align-items: center;
     background-color: #fff;
     border: 1px solid #ddd;
-    border-radius: 12px;
-    padding: 15px;
-    width: 250px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    text-align: center;
-    position: relative;
-    transition: background-color 0.3s ease, box-shadow 0.3s ease;
-    cursor: pointer;
+    border-radius: 8px;
+    padding: 15px 20px;
+    margin-bottom: 10px;
+    transition: background-color 0.3s ease;
 
     &:hover {
         background-color: rgba(0, 123, 255, 0.1);
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    }
-
-    &:nth-child(odd) {
-        background-color: rgba(0, 123, 255, 0.05);
-    }
-
-    &:nth-child(even) {
-        background-color: rgba(40, 167, 69, 0.05);
     }
 `;
 
+const Details = styled.div`
+    display: flex;
+    flex-direction: row;
+    flex: 1;
+    gap: 10px; /* Adds space between the title and description */
+`;
+
 const InsuranceTitle = styled.h2`
-    font-size: 18px;
-    margin-bottom: 10px;
+    font-size: 16px;
+    margin: 0;
+    font-weight: bold;
 `;
 
 const Description = styled.p`
     font-size: 14px;
     color: #555;
-    margin-bottom: 10px;
+    margin: 0;
+    align-self: center;
 `;
 
-const Price = styled.p`
+const Price = styled.span`
     font-size: 16px;
     font-weight: bold;
-    color: #333;
-    margin-bottom: 15px;
+    color: #28A745;
+    background-color: #f1f1f1;
+    padding: 5px 10px;
+    border-radius: 10px;
+    min-width: 70px; /* Smaller price bar */
+    text-align: right;
+    margin-right: 20px;
 `;
 
 const InsureButton = styled.button`
-    padding: 10px 20px;
+    padding: 8px 16px;
     border: none;
     border-radius: 8px;
     background-color: #005BFF;
