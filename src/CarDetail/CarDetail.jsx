@@ -18,7 +18,6 @@ const CarDetail = () => {
         expiryDate: '',
         phone: ''
     });
-
     const validateForm = () => {
         let valid = true;
         const newErrors = { yearMonth: '', expiryDate: '', phone: '' };

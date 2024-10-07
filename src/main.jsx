@@ -34,8 +34,8 @@ const MainContent = () => {
                 setCarModel(data.carModel);  
                 setBrandName(data.brandName); 
                 setErrorMessage('');
-
                 navigate('/car-detail', { state: { carNumber, carModel, brandName } });
+
             } else if (response.status === 404) {
                 setErrorMessage('Incorrect car registration number.');
             } else {
@@ -45,7 +45,7 @@ const MainContent = () => {
             setErrorMessage('An error occurred. Please try again.');
         }
     };
-
+    
     const handleRenewClick = () => {
         navigate('/login');
     };
