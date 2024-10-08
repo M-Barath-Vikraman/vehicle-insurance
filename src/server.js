@@ -1,13 +1,13 @@
 const express = require('express');
-const mongoose = require('mongoose');
-const cors = require('cors');
+const mongoose = require('mongoose'); // tp connect to MongoDB
+const cors = require('cors');//for frontend-backend communication
 
 const app = express();
 const port = 5000;
 
 // Middleware
 app.use(cors());
-app.use(express.json());
+app.use(express.json()); // convert jason string to javascript object
 
 // MongoDB connection
 const dbURI = 'mongodb://localhost:27017/mern_vehicle-insurance';

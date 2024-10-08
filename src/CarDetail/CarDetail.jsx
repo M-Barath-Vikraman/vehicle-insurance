@@ -9,10 +9,10 @@ const CarDetail = () => {
     const navigate = useNavigate();
     const { carNumber, carModel, brandName } = location.state || {};// Optional chaining to safely access carNumber
 
-    const [yearMonth, setYearMonth] = useState('');
+    const [yearMonth, setYearMonth] = useState(''); // used to store input details
     const [expiryDate, setExpiryDate] = useState('');
     const [phone, setPhone] = useState('');
-    const [isComprehensive, setIsComprehensive] = useState(false);
+    const [isComprehensive, setIsComprehensive] = useState(false);  
     const [errors, setErrors] = useState({
         yearMonth: '',
         expiryDate: '',
@@ -123,7 +123,7 @@ const CarDetail = () => {
                         <ButtonWrapper>
                             <SeePriceButton onClick={handleSubmit}>See Price</SeePriceButton>
                             <AuthorizationText>
-                                By clicking, I authorize Tata AIG to connect with me over Call/SMS/WhatsApp,<br />
+                                By clicking, I authorize INSUREXCEED to connect with me over Call/SMS/WhatsApp,<br />
                                 overriding DNCR
                             </AuthorizationText>
                         </ButtonWrapper>

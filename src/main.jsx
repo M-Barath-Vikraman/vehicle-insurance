@@ -3,38 +3,37 @@ import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import InsuranceImage from './Insurance-Image-1.png'; // Ensure this path is correct
 
-const MainContent = () => {
+const MainContent = () => {                 // used to store the user given data and the data fetched form DB
     const navigate = useNavigate();
     const [carNumber, setCarNumber] = useState('');
     const [carModel, setCarModel] = useState(''); 
     const [brandName, setBrandName] = useState(''); 
     const [errorMessage, setErrorMessage] = useState('');
 
-    const handleInputChange = (e) => {
+    const handleInputChange = (e) => {              // convert to upper case
         const uppercasedValue = e.target.value.toUpperCase();
         setCarNumber(uppercasedValue);
     };
 
     const validateCarNumberFormat = () => {
-        const regex = /^[A-Z]{2}[0-9]{2}[A-Z]{1,2}[0-9]{1,4}$/; // Example car number format
+        const regex = /^[A-Z]{2}[0-9]{2}[A-Z]{1,2}[0-9]{1,4}$/; //  car number format
         return regex.test(carNumber);
     };
     
 
     const validateCarNumber = async () => {
         if (!validateCarNumberFormat()) {
-            setErrorMessage('Invalid car number format. Please use correct format.');
+            setErrorMessage('Invalid car number format. Please use correct format.'); // wrong formate error
             return;
         }
         try {
-            const response = await fetch(`http://localhost:5000/api/validate-vehicle/${carNumber}`);
-            const data = await response.json();
-
+            const response = await fetch(`http://localhost:5000/api/validate-vehicle/${carNumber}`); // frtch from db
+            const data = await response.json(); // convert to json foramte data reicver form server
             if (response.ok && data.valid) {
                 setCarModel(data.carModel);  
                 setBrandName(data.brandName); 
                 setErrorMessage('');
-                navigate('/car-detail', { state: { carNumber, carModel, brandName } });
+                navigate('/car-detail', { state: { carNumber, carModel:data.carModel, brandName:data.brandName } }); // pass the car detil to next page
 
             } else if (response.status === 404) {
                 setErrorMessage('Incorrect car registration number.');

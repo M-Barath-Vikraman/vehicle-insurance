@@ -59,7 +59,7 @@ const PriceList = () => {
     ];
 
     const handleInsureClick = (insurance) => {
-        navigate('/payment', { state: { insurance } });
+        navigate('/payment', { state: { insurance } }); // to locate to payment page
     };
 
     return (
