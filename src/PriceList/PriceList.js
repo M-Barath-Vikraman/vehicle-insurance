@@ -1,74 +1,27 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
+import axios from 'axios';  // Use axios to make HTTP requests
 
 const PriceList = () => {
+    const [policies, setPolicies] = useState([]); // To store policies fetched from the server
     const [selectedInsurance, setSelectedInsurance] = useState(null); // To store the selected insurance for modal
     const [showModal, setShowModal] = useState(false); // To control modal visibility
     const navigate = useNavigate();
 
-    const insuranceOptions = [
-        {
-            title: 'Basic Coverage',
-            description: 'Provides minimal protection, covering the essentials like liability and limited collision.',
-            price: '₹2,000',
-            terms: '1.This policy provides liability coverage for bodily injury and property damage to third parties, up to the specified limit.\n2.Coverage includes limited collision protection only for accidents where the insured vehicle is at fault.\n3.Damages caused by non-collision incidents, such as theft, fire, or natural disasters, are not covered under this policy.\n4.The insured driver must be at least 18 years old. Drivers under 25 years may be subject to additional premiums.\n5.The insured must hold a valid driver\'s license in the state or country where the vehicle is registered.\n6.This policy is only applicable to vehicles less than 10 years old. Older vehicles are excluded from collision protection.\n7.Coverage is only valid within the territorial limits of the country where the policy is issued. Driving outside this region voids the coverage.\n8.The policyholder is responsible for a deductible of ₹5000 for each claim made under the collision portion of the coverage.\n9.Policyholders who make no claims during the policy term will receive a discount on premium renewal.\n10.The policyholder may cancel the policy at any time. However, a 10% fee will be charged on the remaining premium amount.\n11.All claims must be reported within 48 hours of the accident. Late reporting may result in claim denial.\n12.Any attempt to file a fraudulent claim will result in the termination of the policy and legal action against the policyholder.\n13.Failure to pay premiums on the due date will result in the automatic suspension of the policy until full payment is received.\n14.The policy is valid for 1 year from the date of issuance and must be renewed before expiry for continuous coverage.\n15.This policy does not cover medical expenses or injuries sustained by passengers in the insured vehicle.\n'
-        },
-        {
-            title: 'Standard Coverage',
-            description: 'A balanced plan covering liability, collision, and theft protection with higher limits.',
-            price: '₹4,500',
-            terms: 'Terms and conditions for Standard Coverage...'
-        },
-        {
-            title: 'Comprehensive Coverage',
-            description: 'Offers extensive protection, covering non-collision incidents such as natural disasters, vandalism, and theft.',
-            price: '₹7,000',
-            terms: 'Terms and conditions for Comprehensive Coverage...'
-        },
-        {
-            title: 'Third-Party Liability',
-            description: 'Covers damages and injuries you cause to others in an accident.',
-            price: '₹3,000',
-            terms: 'Terms and conditions for Third-Party Liability...'
-        },
-        {
-            title: 'Collision Coverage',
-            description: 'Pays for repairs to your car after an accident, regardless of fault.',
-            price: '₹5,500',
-            terms: 'Terms and conditions for Collision Coverage...'
-        },
-        {
-            title: 'Theft Protection',
-            description: 'Covers your vehicle if it is stolen or damaged in an attempted theft.',
-            price: '₹4,000',
-            terms: 'Terms and conditions for Theft Protection...'
-        },
-        {
-            title: 'Fire and Theft Coverage',
-            description: 'Provides coverage if your car is damaged by fire or theft, but not from collision.',
-            price: '₹3,500',
-            terms: 'Terms and conditions for Fire and Theft Coverage...'
-        },
-        {
-            title: 'Personal Injury Protection',
-            description: 'Covers medical expenses and lost wages for you and your passengers, regardless of fault.',
-            price: '₹6,000',
-            terms: 'Terms and conditions for Personal Injury Protection...'
-        },
-        {
-            title: 'Uninsured Motorist Coverage',
-            description: 'Protects you if you’re hit by a driver with no insurance or insufficient coverage.',
-            price: '₹4,500',
-            terms: 'Terms and conditions for Uninsured Motorist Coverage...'
-        },
-        {
-            title: 'Roadside Assistance',
-            description: 'Offers services like towing, flat tire changes, and fuel delivery if you break down.',
-            price: '₹1,500',
-            terms: 'Terms and conditions for Roadside Assistance...'
-        }
-    ];
+    // Fetch policies from the server when the component loads
+    useEffect(() => {
+        const fetchPolicies = async () => {
+            try {
+                const response = await axios.get('http://localhost:5000/api/policies');
+                setPolicies(response.data); // Store fetched policies in the state
+            } catch (error) {
+                console.error('Error fetching policies:', error);
+            }
+        };
+
+        fetchPolicies();
+    }, []);
 
     const handleInsureClick = (insurance) => {
         setSelectedInsurance(insurance);
@@ -88,13 +41,13 @@ const PriceList = () => {
         <Container>
             <Title>Available Insurance Plans</Title>
             <InsuranceList>
-                {insuranceOptions.map((insurance, index) => (
+                {policies.map((insurance, index) => (
                     <InsuranceItem key={index}>
                         <Details>
-                            <InsuranceTitle>{insurance.title}</InsuranceTitle>
-                            <Description>{insurance.description}</Description>
+                            <InsuranceTitle>{insurance.Title}</InsuranceTitle>
+                            <Description>{insurance.Description}</Description>
                         </Details>
-                        <Price>{insurance.price}</Price>
+                        <Price>{insurance.Price}</Price>
                         <InsureButton onClick={() => handleInsureClick(insurance)}>Insure</InsureButton>
                     </InsuranceItem>
                 ))}
@@ -104,7 +57,7 @@ const PriceList = () => {
                 <Modal>
                     <ModalContent>
                         <ModalTitle>Terms and Conditions</ModalTitle>
-                        <ModalDescription>{selectedInsurance?.terms}</ModalDescription>
+                        <ModalDescription>{selectedInsurance?.Terms}</ModalDescription>
                         <ModalActions>
                             <AgreeButton onClick={handleAgree}>Agree</AgreeButton>
                             <CloseButton onClick={handleClose}>Close</CloseButton>
@@ -116,6 +69,7 @@ const PriceList = () => {
     );
 };
 
+// Styled Components
 const Container = styled.div`
     padding: 20px;
     background-color: #f9f9f9;
@@ -153,7 +107,7 @@ const Details = styled.div`
     display: flex;
     flex-direction: row;
     flex: 1;
-    gap: 10px; /* Adds space between the title and description */
+    gap: 10px;
 `;
 
 const InsuranceTitle = styled.h2`
@@ -176,7 +130,7 @@ const Price = styled.span`
     background-color: #f1f1f1;
     padding: 5px 10px;
     border-radius: 10px;
-    min-width: 70px; /* Smaller price bar */
+    min-width: 70px;
     text-align: right;
     margin-right: 20px;
 `;
