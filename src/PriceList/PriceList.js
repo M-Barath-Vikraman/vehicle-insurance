@@ -89,12 +89,14 @@ const PriceList = () => {
             <Title>Available Insurance Plans</Title>
             <InsuranceList>
                 {insuranceOptions.map((insurance, index) => (
-                    <InsuranceCard key={index}>
-                        <InsuranceTitle>{insurance.title}</InsuranceTitle>
-                        <Description>{insurance.description}</Description>
+                    <InsuranceItem key={index}>
+                        <Details>
+                            <InsuranceTitle>{insurance.title}</InsuranceTitle>
+                            <Description>{insurance.description}</Description>
+                        </Details>
                         <Price>{insurance.price}</Price>
                         <InsureButton onClick={() => handleInsureClick(insurance)}>Insure</InsureButton>
-                    </InsuranceCard>
+                    </InsuranceItem>
                 ))}
             </InsuranceList>
 
@@ -123,60 +125,64 @@ const Container = styled.div`
 const Title = styled.h1`
     font-size: 24px;
     margin-bottom: 20px;
+    text-align: center;
 `;
 
-const InsuranceList = styled.div`
+const InsuranceList = styled.ul`
+    list-style-type: none;
+    padding: 0;
+`;
+
+const InsuranceItem = styled.li`
     display: flex;
-    flex-wrap: wrap;
-    gap: 20px;
-`;
-
-const InsuranceCard = styled.div`
+    justify-content: space-between;
+    align-items: center;
     background-color: #fff;
     border: 1px solid #ddd;
-    border-radius: 12px;
-    padding: 15px;
-    width: 250px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    text-align: center;
-    position: relative;
-    transition: background-color 0.3s ease, box-shadow 0.3s ease;
-    cursor: pointer;
+    border-radius: 8px;
+    padding: 15px 20px;
+    margin-bottom: 10px;
+    transition: background-color 0.3s ease;
 
     &:hover {
         background-color: rgba(0, 123, 255, 0.1);
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    }
-
-    &:nth-child(odd) {
-        background-color: rgba(0, 123, 255, 0.05);
-    }
-
-    &:nth-child(even) {
-        background-color: rgba(40, 167, 69, 0.05);
     }
 `;
 
+const Details = styled.div`
+    display: flex;
+    flex-direction: row;
+    flex: 1;
+    gap: 10px; /* Adds space between the title and description */
+`;
+
 const InsuranceTitle = styled.h2`
-    font-size: 18px;
-    margin-bottom: 10px;
+    font-size: 16px;
+    margin: 0;
+    font-weight: bold;
 `;
 
 const Description = styled.p`
     font-size: 14px;
     color: #555;
-    margin-bottom: 10px;
+    margin: 0;
+    align-self: center;
 `;
 
-const Price = styled.p`
+const Price = styled.span`
     font-size: 16px;
     font-weight: bold;
-    color: #333;
-    margin-bottom: 15px;
+    color: #28A745;
+    background-color: #f1f1f1;
+    padding: 5px 10px;
+    border-radius: 10px;
+    min-width: 70px; /* Smaller price bar */
+    text-align: right;
+    margin-right: 20px;
 `;
 
 const InsureButton = styled.button`
-    padding: 10px 20px;
+    padding: 8px 16px;
     border: none;
     border-radius: 8px;
     background-color: #005BFF;

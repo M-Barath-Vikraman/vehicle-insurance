@@ -43,58 +43,69 @@ const Payment = () => {
     const handlePayment = () => {
         if (validateForm()) {
             alert('Payment Successful!');
-            // Here you can add further actions like redirecting or saving data
         }
     };
 
     return (
         <Container>
-            <Title>Payment Details</Title>
-            <InsuranceSummary>
-                <h3>{insurance?.title}</h3>
-                <p>{insurance?.description}</p>
-                <Price>Total: {insurance?.price}</Price>
-            </InsuranceSummary>
-            <Form>
-                <FormLabel>Cardholder Name</FormLabel>
-                <Input
-                    type="text"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    placeholder="Enter your name"
-                />
-                {errors.name && <ErrorMessage>{errors.name}</ErrorMessage>}
+            <ContentWrapper>
+                <LeftSide>
+                    <InsuranceSummary>
+                        <h3>{insurance?.title || 'Insurance Plan'}</h3>
+                        <p>{insurance?.description || 'This plan covers the following details.'}</p>
+                        <Price>Total: {insurance?.price || '₹0'}</Price>
+                    </InsuranceSummary>
+                    <TermsAndConditions>
+                        <h3>Terms and Conditions</h3>
+                        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nec odio. Praesent libero. Sed cursus ante dapibus diam.</p>
+                        <p>Proin nibh urna, fermentum nec libero ut, aliquam auctor ligula. Nulla facilisi. Etiam pellentesque ligula non nunc bibendum, eget vehicula libero egestas.</p>
+                        <p>Suspendisse potenti. Duis consectetur, orci nec fringilla pharetra, nisl nunc faucibus nulla, sit amet viverra turpis felis id mauris.</p>
+                    </TermsAndConditions>
+                </LeftSide>
 
-                <FormLabel>Card Number</FormLabel>
-                <Input
-                    type="text"
-                    value={cardNumber}
-                    onChange={(e) => setCardNumber(e.target.value)}
-                    placeholder="16-digit card number"
-                    maxLength="16"
-                />
-                {errors.cardNumber && <ErrorMessage>{errors.cardNumber}</ErrorMessage>}
+                <RightSide>
+                    <Form>
+                        <FormLabel>Cardholder Name</FormLabel>
+                        <Input
+                            type="text"
+                            value={name}
+                            onChange={(e) => setName(e.target.value)}
+                            placeholder="Enter your name"
+                        />
+                        {errors.name && <ErrorMessage>{errors.name}</ErrorMessage>}
 
-                <FormLabel>Expiry Date</FormLabel>
-                <Input
-                    type="month"
-                    value={expiryDate}
-                    onChange={(e) => setExpiryDate(e.target.value)}
-                />
-                {errors.expiryDate && <ErrorMessage>{errors.expiryDate}</ErrorMessage>}
+                        <FormLabel>Card Number</FormLabel>
+                        <Input
+                            type="text"
+                            value={cardNumber}
+                            onChange={(e) => setCardNumber(e.target.value)}
+                            placeholder="16-digit card number"
+                            maxLength="16"
+                        />
+                        {errors.cardNumber && <ErrorMessage>{errors.cardNumber}</ErrorMessage>}
 
-                <FormLabel>CVV</FormLabel>
-                <Input
-                    type="text"
-                    value={cvv}
-                    onChange={(e) => setCvv(e.target.value)}
-                    placeholder="3 or 4-digit CVV"
-                    maxLength="4"
-                />
-                {errors.cvv && <ErrorMessage>{errors.cvv}</ErrorMessage>}
+                        <FormLabel>Expiry Date</FormLabel>
+                        <Input
+                            type="month"
+                            value={expiryDate}
+                            onChange={(e) => setExpiryDate(e.target.value)}
+                        />
+                        {errors.expiryDate && <ErrorMessage>{errors.expiryDate}</ErrorMessage>}
 
-                <PayButton onClick={handlePayment}>Pay Now</PayButton>
-            </Form>
+                        <FormLabel>CVV</FormLabel>
+                        <Input
+                            type="text"
+                            value={cvv}
+                            onChange={(e) => setCvv(e.target.value)}
+                            placeholder="3 or 4-digit CVV"
+                            maxLength="4"
+                        />
+                        {errors.cvv && <ErrorMessage>{errors.cvv}</ErrorMessage>}
+
+                        <PayButton onClick={handlePayment}>Pay Now</PayButton>
+                    </Form>
+                </RightSide>
+            </ContentWrapper>
         </Container>
     );
 };
@@ -105,20 +116,31 @@ const Container = styled.div`
     min-height: 100vh;
 `;
 
-const Title = styled.h1`
-    font-size: 24px;
-    margin-bottom: 20px;
-    text-align: center;
+const ContentWrapper = styled.div`
+    display: flex;
+    justify-content: space-between;
+    gap: 40px;
+`;
+
+const LeftSide = styled.div`
+    flex: 1;
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+`;
+
+const RightSide = styled.div`
+    flex: 1;
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 `;
 
 const InsuranceSummary = styled.div`
-    background-color: #fff;
-    border: 1px solid #ddd;
-    border-radius: 12px;
-    padding: 20px;
     margin-bottom: 20px;
-    text-align: center;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    text-align: left;
 `;
 
 const Price = styled.p`
@@ -127,14 +149,23 @@ const Price = styled.p`
     color: #333;
 `;
 
+const TermsAndConditions = styled.div`
+    margin-top: 20px;
+    h3 {
+        font-size: 18px;
+        margin-bottom: 10px;
+    }
+    p {
+        font-size: 14px;
+        color: #555;
+        line-height: 1.6;
+    }
+`;
+
 const Form = styled.div`
     display: flex;
     flex-direction: column;
     gap: 15px;
-    background-color: #fff;
-    padding: 20px;
-    border-radius: 12px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 `;
 
 const FormLabel = styled.label`
