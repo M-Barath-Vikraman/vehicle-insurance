@@ -44,7 +44,7 @@ const MainContent = () => {
             setErrorMessage('An error occurred. Please try again.');
         }
     };
-
+    
     const handleRenewClick = () => {
         navigate('/login');
     };
