@@ -49,62 +49,46 @@ const Payment = () => {
     return (
         <Container>
             <ContentWrapper>
-                <LeftSide>
-                    <InsuranceSummary>
-                        <h3>{insurance?.title || 'Insurance Plan'}</h3>
-                        <p>{insurance?.description || 'This plan covers the following details.'}</p>
-                        <Price>Total: {insurance?.price || '₹0'}</Price>
-                    </InsuranceSummary>
-                    <TermsAndConditions>
-                        <h3>Terms and Conditions</h3>
-                        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nec odio. Praesent libero. Sed cursus ante dapibus diam.</p>
-                        <p>Proin nibh urna, fermentum nec libero ut, aliquam auctor ligula. Nulla facilisi. Etiam pellentesque ligula non nunc bibendum, eget vehicula libero egestas.</p>
-                        <p>Suspendisse potenti. Duis consectetur, orci nec fringilla pharetra, nisl nunc faucibus nulla, sit amet viverra turpis felis id mauris.</p>
-                    </TermsAndConditions>
-                </LeftSide>
+                <Form>
+                    <FormLabel>Cardholder Name</FormLabel>
+                    <Input
+                        type="text"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        placeholder="Enter your name"
+                    />
+                    {errors.name && <ErrorMessage>{errors.name}</ErrorMessage>}
 
-                <RightSide>
-                    <Form>
-                        <FormLabel>Cardholder Name</FormLabel>
-                        <Input
-                            type="text"
-                            value={name}
-                            onChange={(e) => setName(e.target.value)}
-                            placeholder="Enter your name"
-                        />
-                        {errors.name && <ErrorMessage>{errors.name}</ErrorMessage>}
+                    <FormLabel>Card Number</FormLabel>
+                    <Input
+                        type="text"
+                        value={cardNumber}
+                        onChange={(e) => setCardNumber(e.target.value)}
+                        placeholder="16-digit card number"
+                        maxLength="16"
+                    />
+                    {errors.cardNumber && <ErrorMessage>{errors.cardNumber}</ErrorMessage>}
 
-                        <FormLabel>Card Number</FormLabel>
-                        <Input
-                            type="text"
-                            value={cardNumber}
-                            onChange={(e) => setCardNumber(e.target.value)}
-                            placeholder="16-digit card number"
-                            maxLength="16"
-                        />
-                        {errors.cardNumber && <ErrorMessage>{errors.cardNumber}</ErrorMessage>}
+                    <FormLabel>Expiry Date</FormLabel>
+                    <Input
+                        type="month"
+                        value={expiryDate}
+                        onChange={(e) => setExpiryDate(e.target.value)}
+                    />
+                    {errors.expiryDate && <ErrorMessage>{errors.expiryDate}</ErrorMessage>}
 
-                        <FormLabel>Expiry Date</FormLabel>
-                        <Input
-                            type="month"
-                            value={expiryDate}
-                            onChange={(e) => setExpiryDate(e.target.value)}
-                        />
-                        {errors.expiryDate && <ErrorMessage>{errors.expiryDate}</ErrorMessage>}
+                    <FormLabel>CVV</FormLabel>
+                    <Input
+                        type="text"
+                        value={cvv}
+                        onChange={(e) => setCvv(e.target.value)}
+                        placeholder="3 or 4-digit CVV"
+                        maxLength="4"
+                    />
+                    {errors.cvv && <ErrorMessage>{errors.cvv}</ErrorMessage>}
 
-                        <FormLabel>CVV</FormLabel>
-                        <Input
-                            type="text"
-                            value={cvv}
-                            onChange={(e) => setCvv(e.target.value)}
-                            placeholder="3 or 4-digit CVV"
-                            maxLength="4"
-                        />
-                        {errors.cvv && <ErrorMessage>{errors.cvv}</ErrorMessage>}
-
-                        <PayButton onClick={handlePayment}>Pay Now</PayButton>
-                    </Form>
-                </RightSide>
+                    <PayButton onClick={handlePayment}>Pay Now</PayButton>
+                </Form>
             </ContentWrapper>
         </Container>
     );
@@ -114,12 +98,21 @@ const Container = styled.div`
     padding: 20px;
     background-color: #f9f9f9;
     min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 `;
 
 const ContentWrapper = styled.div`
+    width: 100%;
+    max-width: 600px; /* Set a max-width for the form to keep it compact */
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
     display: flex;
-    justify-content: space-between;
-    gap: 40px;
+    flex-direction: column;
+    gap: 15px;
 `;
 
 const LeftSide = styled.div`

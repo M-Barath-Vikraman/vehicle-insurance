@@ -1,86 +1,79 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom'; // Import useNavigate for navigation
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
+import axios from 'axios';  // Use axios to make HTTP requests
 
 const PriceList = () => {
-    const navigate = useNavigate(); // Initialize navigation hook
+    const [policies, setPolicies] = useState([]); // To store policies fetched from the server
+    const [selectedInsurance, setSelectedInsurance] = useState(null); // To store the selected insurance for modal
+    const [showModal, setShowModal] = useState(false); // To control modal visibility
+    const navigate = useNavigate();
 
-    const insuranceOptions = [
-        {
-            title: 'Basic Coverage',
-            description: 'Covers liability and limited collision.',
-            price: '₹2,000'
-        },
-        {
-            title: 'Standard Coverage',
-            description: 'Includes liability, collision, and theft protection.',
-            price: '₹4,500'
-        },
-        {
-            title: 'Comprehensive Coverage',
-            description: 'Offers full protection, including natural disasters.',
-            price: '₹7,000'
-        },
-        {
-            title: 'Third-Party Liability',
-            description: 'Covers damages you cause to others.',
-            price: '₹3,000'
-        },
-        {
-            title: 'Collision Coverage',
-            description: 'Pays for repairs after an accident.',
-            price: '₹5,500'
-        },
-        {
-            title: 'Theft Protection',
-            description: 'Covers your vehicle in case of theft.',
-            price: '₹4,000'
-        },
-        {
-            title: 'Fire and Theft Coverage',
-            description: 'Covers fire and theft damages, excluding collisions.',
-            price: '₹3,500'
-        },
-        {
-            title: 'Personal Injury Protection',
-            description: 'Covers medical expenses regardless of fault.',
-            price: '₹6,000'
-        },
-        {
-            title: 'Uninsured Motorist Coverage',
-            description: 'Protects you against uninsured drivers.',
-            price: '₹4,500'
-        },
-        {
-            title: 'Roadside Assistance',
-            description: 'Includes towing, flat tire changes, and more.',
-            price: '₹1,500'
-        }
-    ];
+    // Fetch policies from the server when the component loads
+    useEffect(() => {
+        const fetchPolicies = async () => {
+            try {
+                const response = await axios.get('http://localhost:5000/api/policies');
+                setPolicies(response.data); // Store fetched policies in the state
+            } catch (error) {
+                console.error('Error fetching policies:', error);
+            }
+        };
+
+        fetchPolicies();
+    }, []);
 
     const handleInsureClick = (insurance) => {
+<<<<<<< HEAD
         navigate('/payment', { state: { insurance } }); // to locate to payment page
+=======
+        setSelectedInsurance(insurance);
+        setShowModal(true); // Show modal when user clicks "Insure"
+    };
+
+    const handleAgree = () => {
+        setShowModal(false);
+        navigate('/payment', { state: { insurance: selectedInsurance } });
+    };
+
+    const handleClose = () => {
+        setShowModal(false);
+>>>>>>> 17f739263247d0d6cf3e56aeb73443fba55977ac
     };
 
     return (
         <Container>
             <Title>Available Insurance Plans</Title>
             <InsuranceList>
-                {insuranceOptions.map((insurance, index) => (
+                {policies.map((insurance, index) => (
                     <InsuranceItem key={index}>
                         <Details>
-                            <InsuranceTitle>{insurance.title}</InsuranceTitle>
-                            <Description>{insurance.description}</Description>
+                            <InsuranceTitle>{insurance.Title}</InsuranceTitle>
+                            <Description>{insurance.Description}</Description>
                         </Details>
-                        <Price>{insurance.price}</Price>
+                        <Price>{insurance.Price}</Price>
                         <InsureButton onClick={() => handleInsureClick(insurance)}>Insure</InsureButton>
                     </InsuranceItem>
                 ))}
             </InsuranceList>
+
+            {showModal && (
+                <Modal>
+                    <ModalContent>
+                        <ModalTitle>Terms and Conditions</ModalTitle>
+                        <ModalDescription>{selectedInsurance?.Terms}</ModalDescription>
+                        <ModalActions>
+                            <AgreeButton onClick={handleAgree}>Agree</AgreeButton>
+                            <CloseButton onClick={handleClose}>Close</CloseButton>
+                        </ModalActions>
+                    </ModalContent>
+                </Modal>
+            )}
         </Container>
     );
 };
 
+// Styled Components
 const Container = styled.div`
     padding: 20px;
     background-color: #f9f9f9;
@@ -118,7 +111,7 @@ const Details = styled.div`
     display: flex;
     flex-direction: row;
     flex: 1;
-    gap: 10px; /* Adds space between the title and description */
+    gap: 10px;
 `;
 
 const InsuranceTitle = styled.h2`
@@ -141,7 +134,7 @@ const Price = styled.span`
     background-color: #f1f1f1;
     padding: 5px 10px;
     border-radius: 10px;
-    min-width: 70px; /* Smaller price bar */
+    min-width: 70px;
     text-align: right;
     margin-right: 20px;
 `;
@@ -159,6 +152,60 @@ const InsureButton = styled.button`
     &:hover {
         background-color: #0046A6;
     }
+`;
+
+// Modal styling
+const Modal = styled.div`
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+`;
+
+const ModalContent = styled.div`
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    text-align: center;
+    width: 400px;
+`;
+
+const ModalTitle = styled.h2`
+    font-size: 20px;
+    margin-bottom: 15px;
+`;
+
+const ModalDescription = styled.p`
+    font-size: 14px;
+    margin-bottom: 20px;
+`;
+
+const ModalActions = styled.div`
+    display: flex;
+    justify-content: space-around;
+`;
+
+const AgreeButton = styled.button`
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    background-color: #28a745;
+    color: white;
+    cursor: pointer;
+`;
+
+const CloseButton = styled.button`
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    background-color: #dc3545;
+    color: white;
+    cursor: pointer;
 `;
 
 export default PriceList;
