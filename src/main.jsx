@@ -49,10 +49,7 @@ const MainContent = () => {                 // used to store the user given data
         navigate('/login');
     };
 
-    const handleNewCarClick = () => {
-        navigate('/new-car-detail');
-    };
-
+    
     return (
         <MainWrapper>
             <TextSection>
@@ -72,11 +69,7 @@ const MainContent = () => {                 // used to store the user given data
                         <GetPriceButton onClick={validateCarNumber}>Get Price</GetPriceButton>
                     </ButtonWrapper>
                 </FormWrapper>
-                <NewCarButton onClick={handleNewCarClick}>
-                    <CarIcon />
-                    <span>Insure your <strong>Brand New Car</strong></span>
-                    <ArrowIcon />
-                </NewCarButton>
+               
             </TextSection>
             <ImageSection>
                 <img src={InsuranceImage} alt="Insurance Directions" />
@@ -177,34 +170,6 @@ const GetPriceButton = styled(Button)`
     &:hover {
         background-color: #0046A6;
     }
-`;
-
-const NewCarButton = styled(Button)`
-    margin-top: 20px;
-    display: flex;
-    align-items: center;
-    background-color: #F4F4F4;
-    padding: 10px 20px;
-    border-radius: 30px;
-    color: #1C0046;
-    width: fit-content;
-    cursor: pointer;
-`;
-
-const CarIcon = styled.div`
-    width: 30px;
-    height: 30px;
-    background: url('./car-icon.png') no-repeat center center;
-    background-size: contain;
-    margin-right: 10px;
-`;
-
-const ArrowIcon = styled.div`
-    width: 20px;
-    height: 20px;
-    background: url('/path-to-arrow-icon.png') no-repeat center center;
-    background-size: contain;
-    margin-left: 10px;
 `;
 
 const ErrorMessage = styled.div`
