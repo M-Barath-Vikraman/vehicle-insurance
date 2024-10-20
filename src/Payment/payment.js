@@ -1,200 +1,326 @@
 import React, { useState } from 'react';
-import { useLocation } from 'react-router-dom';
 import styled from 'styled-components';
+import { FaCreditCard } from 'react-icons/fa';
+import { SiPaytm } from 'react-icons/si';
+import { FaGooglePay } from 'react-icons/fa';
 
 const Payment = () => {
-    const location = useLocation();
-    const insurance = location.state?.insurance;
+    const [paymentMethod, setPaymentMethod] = useState('');
+    const [upiOption, setUpiOption] = useState('');
+    const [newUpiId, setNewUpiId] = useState('');
+    const [netBankingOption, setNetBankingOption] = useState('');
 
-    const [name, setName] = useState('');
-    const [cardNumber, setCardNumber] = useState('');
-    const [expiryDate, setExpiryDate] = useState('');
-    const [cvv, setCvv] = useState('');
-    const [errors, setErrors] = useState({});
-
-    const validateForm = () => {
-        const newErrors = {};
-        let isValid = true;
-
-        if (!name) {
-            newErrors.name = 'Name is required';
-            isValid = false;
-        }
-
-        if (!/^\d{16}$/.test(cardNumber)) {
-            newErrors.cardNumber = 'Card number must be 16 digits';
-            isValid = false;
-        }
-
-        if (!expiryDate) {
-            newErrors.expiryDate = 'Expiry date is required';
-            isValid = false;
-        }
-
-        if (!/^\d{3,4}$/.test(cvv)) {
-            newErrors.cvv = 'CVV must be 3 or 4 digits';
-            isValid = false;
-        }
-
-        setErrors(newErrors);
-        return isValid;
+    const handlePaymentSelection = (method) => {
+        setPaymentMethod(method);
+        setUpiOption('');
+        setNewUpiId('');
+        setNetBankingOption('');
     };
 
-    const handlePayment = () => {
-        if (validateForm()) {
-            alert('Payment Successful!');
-        }
+    const handleUpiSelection = (option) => {
+        setUpiOption(option);
+        setNewUpiId(''); // Reset UPI ID input when UPI option is selected
     };
 
     return (
-        <Container>
-            <ContentWrapper>
-                <Form>
-                    <FormLabel>Cardholder Name</FormLabel>
-                    <Input
-                        type="text"
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                        placeholder="Enter your name"
-                    />
-                    {errors.name && <ErrorMessage>{errors.name}</ErrorMessage>}
+        <PaymentContainer>
+            <PaymentLeft>
+                <h3>Select payment method</h3>
+                <PaymentOptions>
+                    {/* Credit/Debit/ATM Card Option */}
+                    <PaymentOption>
+                        <PaymentOptionHeader onClick={() => handlePaymentSelection('Card')}>
+                            <Icon><FaCreditCard /></Icon>
+                            <OptionInfo>
+                                <h4>Credit/Debit/ATM Card</h4>
+                            </OptionInfo>
+                        </PaymentOptionHeader>
+                        {paymentMethod === 'Card' && (
+                            <CardDetails>
+                                <h4>Enter Card Details</h4>
+                                <input type="text" placeholder="Card Number" />
+                                <CardRow>
+                                    <input type="text" placeholder="Expiry (MM/YY)" />
+                                    <input type="text" placeholder="CVV" />
+                                </CardRow>
+                                <button>Pay ₹5,900</button>
+                            </CardDetails>
+                        )}
+                    </PaymentOption>
 
-                    <FormLabel>Card Number</FormLabel>
-                    <Input
-                        type="text"
-                        value={cardNumber}
-                        onChange={(e) => setCardNumber(e.target.value)}
-                        placeholder="16-digit card number"
-                        maxLength="16"
-                    />
-                    {errors.cardNumber && <ErrorMessage>{errors.cardNumber}</ErrorMessage>}
+                    {/* Net Banking Option */}
+                    <PaymentOption>
+                        <PaymentOptionHeader onClick={() => handlePaymentSelection('NetBanking')}>
+                            <Icon><SiPaytm /></Icon>
+                            <OptionInfo>
+                                <h4>Net Banking</h4>
+                            </OptionInfo>
+                        </PaymentOptionHeader>
+                        {paymentMethod === 'NetBanking' && (
+                            <NetBankingDetails>
+                                <h4>Select Your Bank</h4>
+                                <BankButton onClick={() => setNetBankingOption('HDFC')}>HDFC Bank</BankButton>
+                                <BankButton onClick={() => setNetBankingOption('ICICI')}>ICICI Bank</BankButton>
+                                <BankButton onClick={() => setNetBankingOption('SBI')}>State Bank of India</BankButton>
+                                <BankButton onClick={() => setNetBankingOption('Axis')}>Axis Bank</BankButton>
+                                <BankButton onClick={() => setNetBankingOption('Kotak')}>Kotak Mahindra Bank</BankButton>
+                                <BankButton onClick={() => setNetBankingOption('PNB')}>Punjab National Bank</BankButton>
 
-                    <FormLabel>Expiry Date</FormLabel>
-                    <Input
-                        type="month"
-                        value={expiryDate}
-                        onChange={(e) => setExpiryDate(e.target.value)}
-                    />
-                    {errors.expiryDate && <ErrorMessage>{errors.expiryDate}</ErrorMessage>}
+                                {netBankingOption && (
+                                    <div>
+                                        <p>Selected Bank: {netBankingOption}</p>
+                                        <button>Pay ₹5,900</button>
+                                    </div>
+                                )}
+                            </NetBankingDetails>
+                        )}
+                    </PaymentOption>
 
-                    <FormLabel>CVV</FormLabel>
-                    <Input
-                        type="text"
-                        value={cvv}
-                        onChange={(e) => setCvv(e.target.value)}
-                        placeholder="3 or 4-digit CVV"
-                        maxLength="4"
-                    />
-                    {errors.cvv && <ErrorMessage>{errors.cvv}</ErrorMessage>}
+                    {/* UPI Option */}
+                    <PaymentOption>
+                        <PaymentOptionHeader onClick={() => handlePaymentSelection('UPI')}>
+                            <Icon><FaGooglePay /></Icon>
+                            <OptionInfo>
+                                <h4>UPI</h4>
+                                <p>Google Pay, Paytm, or Add UPI ID</p>
+                            </OptionInfo>
+                        </PaymentOptionHeader>
+                        {paymentMethod === 'UPI' && (
+                            <UpiOptions>
+                                <h4>Select UPI Option</h4>
+                                <UpiOption>
+                                    <label>
+                                        <input
+                                            type="radio"
+                                            name="upi"
+                                            value="GooglePay"
+                                            checked={upiOption === 'GooglePay'}
+                                            onChange={() => handleUpiSelection('GooglePay')}
+                                        />
+                                        Google Pay
+                                    </label>
+                                </UpiOption>
+                                <UpiOption>
+                                    <label>
+                                        <input
+                                            type="radio"
+                                            name="upi"
+                                            value="Paytm"
+                                            checked={upiOption === 'Paytm'}
+                                            onChange={() => handleUpiSelection('Paytm')}
+                                        />
+                                        Paytm
+                                    </label>
+                                </UpiOption>
+                                <UpiOption>
+                                    <label>
+                                        <input
+                                            type="radio"
+                                            name="upi"
+                                            value="AddUPI"
+                                            checked={upiOption === 'AddUPI'}
+                                            onChange={() => handleUpiSelection('AddUPI')}
+                                        />
+                                        Add New UPI ID
+                                    </label>
+                                </UpiOption>
 
-                    <PayButton onClick={handlePayment}>Pay Now</PayButton>
-                </Form>
-            </ContentWrapper>
-        </Container>
+                                {(upiOption === 'GooglePay' || upiOption === 'Paytm' || upiOption === 'AddUPI') && (
+                                    <div>
+                                        <input
+                                            type="text"
+                                            placeholder="Enter UPI ID"
+                                            value={newUpiId}
+                                            onChange={(e) => setNewUpiId(e.target.value)}
+                                        />
+                                        <button>Pay ₹5,900</button>
+                                    </div>
+                                )}
+                            </UpiOptions>
+                        )}
+                    </PaymentOption>
+                </PaymentOptions>
+            </PaymentLeft>
+
+            <PaymentRight>
+                <h3>Payment Summary</h3>
+                <Summary>
+                    <Item>
+                        <span>Car Insurance</span>
+                        <span>₹5,000.00</span>
+                    </Item>
+                    <Item>
+                        <span>Tax (18%)</span>
+                        <span>₹900.00</span>
+                    </Item>
+                    <Total>
+                        <span>Total</span>
+                        <span>₹5,900.00</span>
+                    </Total>
+                </Summary>
+                <ContinueButton>Continue</ContinueButton>
+            </PaymentRight>
+        </PaymentContainer>
     );
 };
 
-const Container = styled.div`
+const PaymentContainer = styled.div`
+    display: flex;
+    justify-content: space-between;
     padding: 20px;
     background-color: #f9f9f9;
-    min-height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    gap: 20px;
 `;
 
-const ContentWrapper = styled.div`
-    width: 100%;
-    max-width: 600px; /* Set a max-width for the form to keep it compact */
-    background-color: #fff;
+const PaymentLeft = styled.div`
+    flex: 0.6;
+    background: white;
     padding: 20px;
-    border-radius: 12px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+`;
+
+const PaymentOptions = styled.div`
     display: flex;
     flex-direction: column;
-    gap: 15px;
+    gap: 20px;
 `;
 
-const LeftSide = styled.div`
-    flex: 1;
-    background-color: #fff;
-    padding: 20px;
-    border-radius: 12px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+const PaymentOption = styled.div`
+    border: 2px solid #ddd;
+    border-radius: 10px;
+    transition: 0.3s;
+    &:hover {
+        border-color: #007bff;
+        background-color: #f0f8ff;
+    }
 `;
 
-const RightSide = styled.div`
-    flex: 1;
-    background-color: #fff;
-    padding: 20px;
-    border-radius: 12px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+const PaymentOptionHeader = styled.div`
+    display: flex;
+    align-items: center;
+    padding: 15px;
+    cursor: pointer;
 `;
 
-const InsuranceSummary = styled.div`
-    margin-bottom: 20px;
-    text-align: left;
+const Icon = styled.div`
+    font-size: 30px;
+    margin-right: 20px;
 `;
 
-const Price = styled.p`
-    font-size: 20px;
-    font-weight: bold;
-    color: #333;
-`;
-
-const TermsAndConditions = styled.div`
-    margin-top: 20px;
-    h3 {
-        font-size: 18px;
-        margin-bottom: 10px;
+const OptionInfo = styled.div`
+    flex-grow: 1;
+    h4 {
+        margin: 0;
     }
     p {
-        font-size: 14px;
-        color: #555;
-        line-height: 1.6;
+        color: gray;
+        margin: 5px 0 0 0;
     }
 `;
 
-const Form = styled.div`
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-`;
-
-const FormLabel = styled.label`
-    font-size: 14px;
-    font-weight: bold;
-`;
-
-const Input = styled.input`
-    padding: 10px;
-    border: 2px solid #ddd;
-    border-radius: 8px;
-    font-size: 14px;
-    width: 100%;
-    box-sizing: border-box;
-`;
-
-const PayButton = styled.button`
+const CardDetails = styled.div`
     padding: 15px;
-    border: none;
-    border-radius: 25px;
-    background-color: #28a745;
-    color: white;
-    font-size: 16px;
-    cursor: pointer;
-    font-weight: bold;
-    text-align: center;
-    transition: background-color 0.3s ease;
-
-    &:hover {
-        background-color: #218838;
+    input {
+        margin-top: 10px;
+        padding: 10px;
+        border-radius: 5px;
+        border: 1px solid #ddd;
+        width: 100%;
+    }
+    button {
+        margin-top: 10px;
+        padding: 10px;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        &:hover {
+            background-color: #0056b3;
+        }
     }
 `;
 
-const ErrorMessage = styled.div`
-    color: red;
-    font-size: 12px;
+const CardRow = styled.div`
+    display: flex;
+    gap: 10px;
+    input {
+        flex: 1;
+    }
+`;
+
+const NetBankingDetails = styled.div`
+    padding: 15px;
+`;
+
+const BankButton = styled.button`
+    display: block;
+    margin-top: 10px;
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    background-color: #007bff;
+    color: white;
+    cursor: pointer;
+    width: 100%;
+    &:hover {
+        background-color: #0056b3;
+    }
+`;
+
+const UpiOptions = styled.div`
+    padding: 15px;
+`;
+
+const UpiOption = styled.div`
+    margin-bottom: 10px;
+    label {
+        cursor: pointer;
+        font-size: 16px;
+        display: flex;
+        align-items: center;
+    }
+    input {
+        margin-right: 10px;
+    }
+`;
+
+const PaymentRight = styled.div`
+    flex: 0.4;
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+`;
+
+const Summary = styled.div`
+    margin-top: 20px;
+`;
+
+const Item = styled.div`
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+`;
+
+const Total = styled(Item)`
+    font-weight: bold;
+    font-size: 18px;
+`;
+
+const ContinueButton = styled.button`
+    margin-top: 20px;
+    padding: 10px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    width: 100%;
+    &:hover {
+        background-color: #0056b3;
+    }
 `;
 
 export default Payment;

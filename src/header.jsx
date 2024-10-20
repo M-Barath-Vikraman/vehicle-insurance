@@ -6,11 +6,15 @@ const Header = () => {
     const navigate = useNavigate();
 
     const handleLoginClick = () => {
-        navigate('/login'); // Navigate to the login page
+        navigate('/login');
+    };
+
+    const handleAdminClick = () => {
+        navigate('/admin-login');
     };
 
     const handleBackClick = () => {
-        navigate('/'); // Navigate back to the main component
+        navigate('/');
     };
 
     return (
@@ -42,7 +46,7 @@ const ButtonWrapper = styled.div`
     gap: 10px;
 `;
 
-const LoginButton = styled.button`
+const Button = styled.button`
     background-color: #fff;
     color: #2E0059;
     border: none;
@@ -56,17 +60,16 @@ const LoginButton = styled.button`
     }
 `;
 
-const BackButton = styled.button`
-    background-color: #fff;
-    color: #2E0059;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 20px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
+const LoginButton = styled(Button)``;
+
+const BackButton = styled(Button)``;
+
+const AdminButton = styled(Button)`
+    background-color: #FF4C4C;
+    color: white;
 
     &:hover {
-        background-color: #D4C2FC;
+        background-color: #FFA5A5;
     }
 `;
 

@@ -24,9 +24,6 @@ const PriceList = () => {
     }, []);
 
     const handleInsureClick = (insurance) => {
-<<<<<<< HEAD
-        navigate('/payment', { state: { insurance } }); // to locate to payment page
-=======
         setSelectedInsurance(insurance);
         setShowModal(true); // Show modal when user clicks "Insure"
     };
@@ -38,7 +35,6 @@ const PriceList = () => {
 
     const handleClose = () => {
         setShowModal(false);
->>>>>>> 17f739263247d0d6cf3e56aeb73443fba55977ac
     };
 
     return (
