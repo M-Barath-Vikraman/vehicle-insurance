@@ -1,3 +1,4 @@
+const bcrypt = require('bcrypt');
 const express = require('express');
 const mongoose = require('mongoose'); // tp connect to MongoDB
 const cors = require('cors');//for frontend-backend communication
@@ -105,12 +106,13 @@ app.post('/api/register', async (req, res) => {
         if (existingUser) {
             return res.status(400).json({ message: 'User already exists' });
         }
-
+        const saltRounds = 10; // Number of salt rounds (the higher the number, the more secure, but slower)
+        const hashedPassword = await bcrypt.hash(password, saltRounds);
         // Create a new user
         const newUser = new User({
             name,
             email,
-            password, // Note: You should hash the password before storing it
+            password: hashedPassword, // Note: You should hash the password before storing it
             phoneNumber,
             age,
             dob
