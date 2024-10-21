@@ -15,6 +15,18 @@ mongoose.connect(dbURI, { useNewUrlParser: true, useUnifiedTopology: true })
     .then(() => console.log('Connected to MongoDB'))
     .catch(err => console.log(err));
 
+// Define the User schema and model
+const userSchema = new mongoose.Schema({
+    name: { type: String, required: true },
+    email: { type: String, required: true, unique: true },
+    password: { type: String, required: true },
+    phoneNumber: { type: String, required: true },
+    age: { type: Number, required: true },
+    dob: { type: Date, required: true }
+});
+
+const User = mongoose.model('User', userSchema, 'user-details');
+
 // Define the Vehicle schema and model
 const vehicleSchema = new mongoose.Schema({
     vehicleNumber: String,
@@ -82,6 +94,36 @@ app.get('/api/policies/:title', async (req, res) => {
         res.status(500).json({ message: 'Server error', error: err });
     }
 });
+
+// API endpoint for user registration
+app.post('/api/register', async (req, res) => {
+    const { name, email, password, phoneNumber, age, dob } = req.body;
+
+    try {
+        // Check if user already exists
+        const existingUser = await User.findOne({ email });
+        if (existingUser) {
+            return res.status(400).json({ message: 'User already exists' });
+        }
+
+        // Create a new user
+        const newUser = new User({
+            name,
+            email,
+            password, // Note: You should hash the password before storing it
+            phoneNumber,
+            age,
+            dob
+        });
+
+        // Save user to MongoDB
+        await newUser.save();
+        res.status(201).json({ message: 'User registered successfully' });
+    } catch (err) {
+        res.status(500).json({ message: 'Server error', error: err });
+    }
+});
+
 
 app.listen(port, () => {
     console.log(`Server running on http://localhost:${port}`);

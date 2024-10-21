@@ -1,16 +1,18 @@
 import React, { useState } from 'react';
 import './Signup.css';
-import BackgroundImage from './image.png'; // Image is in the same folder as Signup.jsx
+import BackgroundImage from './image.png';
 
 const Signup = () => {
     const [formData, setFormData] = useState({
         name: '',
         email: '',
         password: '',
-        number: '',
+        phoneNumber: '',
         age: '',
         dob: ''
     });
+
+    const [loading, setLoading] = useState(false);
 
     const handleChange = (e) => {
         setFormData({
@@ -19,15 +21,43 @@ const Signup = () => {
         });
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        console.log('Form Data:', formData);
-        // Add your signup logic here
+        setLoading(true);
+
+        try {
+            const response = await fetch('http://localhost:5000/api/register', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(formData),
+            });
+
+            const data = await response.json();
+            if (response.ok) {
+                alert('User registered successfully!');
+                setFormData({
+                    name: '',
+                    email: '',
+                    password: '',
+                    phoneNumber: '',
+                    age: '',
+                    dob: ''
+                });
+            } else {
+                alert(data.message || 'Registration failed');
+            }
+        } catch (error) {
+            console.error('Error during registration:', error);
+            alert('There was a problem with registration.');
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
         <div className="signup-container">
-            
             <form onSubmit={handleSubmit} className="signup-form">
                 <input 
                     type="text" 
@@ -55,9 +85,9 @@ const Signup = () => {
                 />
                 <input 
                     type="text" 
-                    name="number" 
+                    name="phoneNumber" 
                     placeholder="Phone Number" 
-                    value={formData.number} 
+                    value={formData.phoneNumber} 
                     onChange={handleChange} 
                     required 
                 />
@@ -77,11 +107,12 @@ const Signup = () => {
                     onChange={handleChange} 
                     required 
                 />
-                <button type="submit" className="signup-button">Sign Up</button>
+                <button type="submit" className="signup-button" disabled={loading}>
+                    {loading ? 'Signing up...' : 'Sign Up'}
+                </button>
             </form>
         </div>
     );
-}
+};
 
 export default Signup;
-    
