@@ -3,14 +3,15 @@ import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import BackgroundImage from './image.png'; // Image is in the same folder as Login.jsx
 
-
 const Login = () => {
     const [formData, setFormData] = useState({
         email: '',
         password: ''
     });
+    const [error, setError] = useState(''); // State to handle error messages
     const navigate = useNavigate();
 
+    // Handle input change for form fields
     const handleChange = (e) => {
         setFormData({
             ...formData,
@@ -18,14 +19,40 @@ const Login = () => {
         });
     };
 
-    const handleSubmit = (e) => {
+    // Handle form submission for login
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        console.log('Login Data:', formData);
-        // Add your login logic here
+        setError(''); // Clear any previous errors
+
+        try {
+            // Send a POST request to login API
+            const response = await fetch('http://localhost:5000/api/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(formData),
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                console.log('Login successful:', data);
+                // Navigate to a different page (e.g., dashboard) after successful login
+                navigate('/dashboard');
+            } else {
+                // Display error message if login fails
+                setError(data.message || 'Login failed. Please try again.');
+            }
+        } catch (error) {
+            console.error('Error logging in:', error);
+            setError('An error occurred. Please try again later.');
+        }
     };
 
+    // Navigate to the signup page when clicking the "Sign Up" button
     const handleSignUpClick = () => {
-        navigate('/signup'); // Navigate to the Sign Up page
+        navigate('/signup');
     };
 
     return (
@@ -49,6 +76,8 @@ const Login = () => {
                         onChange={handleChange}
                         required
                     />
+                    {/* Display error message if login fails */}
+                    {error && <ErrorText>{error}</ErrorText>}
                     <LoginButton type="submit">Login</LoginButton>
                 </LoginForm>
                 <SignUpSection>
@@ -59,6 +88,8 @@ const Login = () => {
         </LoginWrapper>
     );
 };
+
+// Styled components for the UI elements
 
 const LoginWrapper = styled.div`
     display: flex;
@@ -147,6 +178,12 @@ const SignUpButton = styled.button`
     &:hover {
         background-color: #D4C2FC;
     }
+`;
+
+const ErrorText = styled.p`
+    color: red;
+    text-align: center;
+    margin-top: 10px;
 `;
 
 export default Login;

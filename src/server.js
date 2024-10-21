@@ -1,40 +1,107 @@
 const bcrypt = require('bcrypt');
 const express = require('express');
-const mongoose = require('mongoose');
-const cors = require('cors');
-const bodyParser = require('body-parser');
+const mongoose = require('mongoose'); // tp connect to MongoDB
+const cors = require('cors');//for frontend-backend communication
 
 const app = express();
-const PORT = 5000;
+const port = 5000;
 
 // Middleware
 app.use(cors());
-app.use(bodyParser.json());
+app.use(express.json()); // convert jason string to javascript object
 
-// Connect to MongoDB
-mongoose.connect('mongodb://localhost:27017/userdb', {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-})
-    .then(() => console.log('MongoDB connected successfully'))
-    .catch(err => console.error('MongoDB connection error:', err));
+// MongoDB connection
+const dbURI = 'mongodb://localhost:27017/mern_vehicle-insurance';
+mongoose.connect(dbURI, { useNewUrlParser: true, useUnifiedTopology: true })
+    .then(() => console.log('Connected to MongoDB'))
+    .catch(err => console.log(err));
 
-// User schema
+// Define the User schema and model
 const userSchema = new mongoose.Schema({
-    username: { type: String, required: true },
+    name: { type: String, required: true },
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
+    phoneNumber: { type: String, required: true },
+    age: { type: Number, required: true },
+    dob: { type: Date, required: true }
 });
 
-// User model
-const User = mongoose.model('User', userSchema);
+const User = mongoose.model('User', userSchema, 'user-details');
 
-// API endpoint for user registration (signup)
-app.post('/api/signup', async (req, res) => {
-    const { username, email, password } = req.body;
+// Define the Vehicle schema and model
+const vehicleSchema = new mongoose.Schema({
+    vehicleNumber: String,
+    chassisNumber: String,
+    brandName: String,
+    model: String,
+    cc: Number,
+    luxuryType: String,
+});
+
+const Vehicle = mongoose.model('Vehicle', vehicleSchema, 'vehicle-details');
+
+// Define the Policy schema and model
+const policySchema = new mongoose.Schema({
+    Title: String,
+    Description: String,
+    Price: String,
+    Terms: String,
+});
+
+const Policy = mongoose.model('Policy', policySchema, 'policy-details');
+
+// API endpoint to validate the vehicle number
+app.get('/api/validate-vehicle/:vehicleNumber', async (req, res) => {
+    const { vehicleNumber } = req.params;
 
     try {
-        // Check if the user already exists
+        const vehicle = await Vehicle.findOne({ vehicleNumber });
+        if (vehicle) {
+            res.status(200).json({
+                valid: true,
+                carModel: vehicle.model,
+                brandName: vehicle.brandName,
+            });
+        } else {
+            res.status(404).json({ valid: false, message: 'Vehicle not found' });
+        }
+    } catch (err) {
+        res.status(500).json({ message: 'Server error', error: err });
+    }
+});
+
+// API endpoint to get policy details
+app.get('/api/policies', async (req, res) => {
+    try {
+        const policies = await Policy.find(); // Retrieve all policies
+        res.status(200).json(policies);
+    } catch (err) {
+        res.status(500).json({ message: 'Server error', error: err });
+    }
+});
+
+// API endpoint to get a specific policy by title
+app.get('/api/policies/:title', async (req, res) => {
+    const { title } = req.params;
+    
+    try {
+        const policy = await Policy.findOne({ title });
+        if (policy) {
+            res.status(200).json(policy);
+        } else {
+            res.status(404).json({ message: 'Policy not found' });
+        }
+    } catch (err) {
+        res.status(500).json({ message: 'Server error', error: err });
+    }
+});
+
+// API endpoint for user registration
+app.post('/api/register', async (req, res) => {
+    const { name, email, password, phoneNumber, age, dob } = req.body;
+
+    try {
+        // Check if user already exists
         const existingUser = await User.findOne({ email });
         if (existingUser) {
             return res.status(400).json({ message: 'User already exists' });
@@ -42,9 +109,17 @@ app.post('/api/signup', async (req, res) => {
         const saltRounds = 10; // Number of salt rounds (the higher the number, the more secure, but slower)
         const hashedPassword = await bcrypt.hash(password, saltRounds);
         // Create a new user
-        const newUser = new User({ username, email, password });
-        await newUser.save();
+        const newUser = new User({
+            name,
+            email,
+            password: hashedPassword, // Note: You should hash the password before storing it
+            phoneNumber,
+            age,
+            dob
+        });
 
+        // Save user to MongoDB
+        await newUser.save();
         res.status(201).json({ message: 'User registered successfully' });
     } catch (err) {
         res.status(500).json({ message: 'Server error', error: err });
@@ -62,12 +137,11 @@ app.post('/api/login', async (req, res) => {
             return res.status(404).json({ message: 'User not found' });
         }
 
-        // Check if the password matches (you should hash passwords for security)
-        const isMatch = await bcrypt.compare(password, user.password);
-        if (!isMatch) {
-            return res.status(400).json({ message: 'Invalid credentials' });
+        // Compare the provided password with the stored hashed password
+        const isPasswordValid = await bcrypt.compare(password, user.password);
+        if (!isPasswordValid) {
+            return res.status(400).json({ message: 'Invalid password' });
         }
-
 
         // Successful login
         res.status(200).json({ message: 'Login successful', user });
@@ -76,7 +150,8 @@ app.post('/api/login', async (req, res) => {
     }
 });
 
-// Start the server
-app.listen(PORT, () => {
-    console.log(`Server is running on http://localhost:${PORT}`);
+
+
+app.listen(port, () => {
+    console.log(`Server running on http://localhost:${port}`);
 });
