@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
-import BackgroundImage from './image.png'; // Image is in the same folder as Login.jsx
+import BackgroundImage from './image.png'; // Ensure image exists
 import { useLocation } from 'react-router-dom';
 
 const Login = () => {
     const location = useLocation();
-    const selectedInsurance = location.state?.insurance;
+    const selectedInsurance = location.state?.insurance; // Capture any insurance details if passed
     const [formData, setFormData] = useState({
         email: '',
         password: ''
@@ -41,10 +41,10 @@ const Login = () => {
     
             if (response.ok) {
                 if (selectedInsurance) {
-                    // Redirect to the payment page with insurance (selectedInsurance)
+                    // If an insurance policy was selected, navigate to payment page with the insurance details
                     navigate('/payment', { state: { insurance: selectedInsurance } });
                 } else {
-                    // Redirect to dashboard if no policy is selected
+                    // If no insurance is selected, redirect to the dashboard after successful login
                     navigate('/dashboard');
                 }
             } else {
@@ -56,7 +56,6 @@ const Login = () => {
         }
     };
     
-
     // Navigate to the signup page when clicking the "Sign Up" button
     const handleSignUpClick = () => {
         navigate('/signup');
