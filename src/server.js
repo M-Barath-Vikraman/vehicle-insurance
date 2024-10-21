@@ -42,20 +42,7 @@ app.post('/api/signup', async (req, res) => {
         const saltRounds = 10; // Number of salt rounds (the higher the number, the more secure, but slower)
         const hashedPassword = await bcrypt.hash(password, saltRounds);
         // Create a new user
-<<<<<<< HEAD
         const newUser = new User({ username, email, password });
-=======
-        const newUser = new User({
-            name,
-            email,
-            password: hashedPassword, // Note: You should hash the password before storing it
-            phoneNumber,
-            age,
-            dob
-        });
-
-        // Save user to MongoDB
->>>>>>> 175e67e52fab6d5e59152bbe3eedf11784982fb0
         await newUser.save();
 
         res.status(201).json({ message: 'User registered successfully' });
@@ -76,9 +63,11 @@ app.post('/api/login', async (req, res) => {
         }
 
         // Check if the password matches (you should hash passwords for security)
-        if (user.password !== password) {
-            return res.status(400).json({ message: 'Invalid password' });
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) {
+            return res.status(400).json({ message: 'Invalid credentials' });
         }
+
 
         // Successful login
         res.status(200).json({ message: 'Login successful', user });
