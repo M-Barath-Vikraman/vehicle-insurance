@@ -230,7 +230,6 @@ const Payment = () => {
         </PaymentContainer>
     );
 };
-
 // Styled Components
 const PaymentContainer = styled.div`
     display: flex;
@@ -354,6 +353,7 @@ const DownloadButton = styled.button`
         background-color: #e53935;
     }
 `;
+
 
 export default Payment;
 
