@@ -6,7 +6,10 @@ import { useLocation } from 'react-router-dom';
 
 const Login = () => {
     const location = useLocation();
-    const selectedInsurance = location.state?.insurance; // Capture any insurance details if passed
+    const selectedInsurance = location.state?.insurance;
+    const carNumber = location.state?.carNumber;
+    const carModel = location.state?.carModel;
+    const brandName = location.state?.brandName; // Capture any insurance details if passed
     const [formData, setFormData] = useState({
         email: '',
         password: ''
@@ -40,12 +43,14 @@ const Login = () => {
             const data = await response.json();
     
             if (response.ok) {
+                const user = data.user; // Capture the full user object
+    
                 if (selectedInsurance) {
-                    // If an insurance policy was selected, navigate to payment page with the insurance details
-                    navigate('/payment', { state: { insurance: selectedInsurance } });
+                    // If an insurance policy was selected, navigate to the payment page with insurance and user details
+                    navigate('/payment', { state: { insurance: selectedInsurance, user,carNumber,carModel,brandName  } });
                 } else {
-                    // If no insurance is selected, redirect to the dashboard after successful login
-                    navigate('/dashboard');
+                    // If no insurance is selected, redirect to the dashboard with user details
+                    navigate('/dashboard', { state: { user } });
                 }
             } else {
                 setError(data.message || 'Login failed. Please try again.');
@@ -55,6 +60,7 @@ const Login = () => {
             setError('An error occurred. Please try again later.');
         }
     };
+    
     
     // Navigate to the signup page when clicking the "Sign Up" button
     const handleSignUpClick = () => {

@@ -2,8 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import axios from 'axios';  // Use axios to make HTTP requests
+import { useLocation } from 'react-router-dom';
 
 const PriceList = () => {
+    const location = useLocation();
+    const { carNumber, carModel, brandName } = location.state || {}; 
     const [policies, setPolicies] = useState([]); // To store policies fetched from the server
     const [selectedInsurance, setSelectedInsurance] = useState(null); // To store the selected insurance for modal
     const [showModal, setShowModal] = useState(false); // To control modal visibility
@@ -31,7 +34,14 @@ const PriceList = () => {
     const handleAgree = () => {
         setShowModal(false);
         console.log(selectedInsurance);
-        navigate('/login', { state: { insurance: selectedInsurance } }); // Navigate to login page with selected policy
+        navigate('/login', { 
+            state: { 
+                insurance: selectedInsurance,
+                carNumber: carNumber,
+                carModel: carModel,
+                brandName: brandName
+            } 
+        }); // Navigate to login page with selected policy
     };
     
 

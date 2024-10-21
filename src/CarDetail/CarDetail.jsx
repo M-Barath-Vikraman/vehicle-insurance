@@ -54,7 +54,13 @@ const CarDetail = () => {
     const handleSubmit = () => {
         if (validateForm()) {
             // Redirect to the PriceList component
-            navigate('/price-list');
+            navigate('/price-list', {
+                state: { 
+                    carNumber: carNumber, 
+                    carModel: carModel, 
+                    brandName: brandName 
+                }
+            });
         }
     };
 

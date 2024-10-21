@@ -5,10 +5,12 @@ import { FaCreditCard } from 'react-icons/fa';
 import { SiPaytm } from 'react-icons/si';
 import { FaGooglePay } from 'react-icons/fa';
 import jsPDF from 'jspdf';
+import axios from 'axios';
+
 
 const Payment = () => {
     const location = useLocation();
-    const selectedInsurance = location.state?.insurance; // Retrieve selected policy
+    const { insurance, user,carNumber, carModel,brandName  } = location.state || {}; // Retrieve selected policy
 
     const [paymentMethod, setPaymentMethod] = useState('');
     const [upiOption, setUpiOption] = useState('');
@@ -23,12 +25,12 @@ const Payment = () => {
     };
 
     useEffect(() => {
-        if (selectedInsurance) {
+        if (insurance) {
             const policyEndDate = calculateEndDate();
-            console.log('Selected Insurance:', selectedInsurance);
+            console.log('Selected Insurance:', insurance);
             console.log('Policy End Date:', policyEndDate);
         }
-    }, [selectedInsurance]);
+    }, [insurance]);
 
     const handlePaymentSelection = (method) => {
         setPaymentMethod(method);
@@ -42,6 +44,40 @@ const Payment = () => {
         setNewUpiId(''); // Reset UPI ID input when UPI option is selected
     };
 
+    const handlePayment = async () => {
+        try {
+            const premiumAmount = parseFloat(insurance?.Price.replace(/[^\d.-]/g, '')) || 5900;
+
+            // Prepare the policy data
+            const policyData = {
+                policyHolder: {
+                    name: user.name,
+                    email: user.email,
+                    contactNumber: user.phoneNumber,
+                },
+                vehicleDetails: {
+                    vehicleType: brandName,
+                    vehicleNumber: carNumber,
+                    model: carModel,
+                },
+                premiumAmount
+            };
+
+            // Make API request to save the policy
+            const response = await axios.post('http://localhost:5000/create-policy', policyData);
+
+            if (response.status === 201) {
+                console.log('Policy created successfully', response.data.policy);
+                alert('Payment successful! Policy created.');
+            } else {
+                console.log('Failed to create policy');
+            }
+        } catch (error) {
+            console.error('Error during payment', error);
+            alert('Payment failed. Please try again.');
+        }
+    };
+
     const handleContinue = () => {
         // Show the bill when "Continue" is clicked
         setShowBill(true);
@@ -52,10 +88,10 @@ const Payment = () => {
 
         // Add content to the PDF
         doc.setFontSize(16);
-        doc.text(`Bill for Insurance: ${selectedInsurance?.Title}`, 10, 10);
-        doc.text(`Price: ${selectedInsurance?.Price}`, 10, 20);
-        doc.text(`Tax: ₹${(parseFloat(selectedInsurance.Price.replace(/[^\d.-]/g, '')) * 0.18).toFixed(2)}`, 10, 30);
-        doc.text(`Total: ₹${(parseFloat(selectedInsurance.Price.replace(/[^\d.-]/g, '')) * 1.18).toFixed(2)}`, 10, 40);
+        doc.text(`Bill for Insurance: ${insurance?.Title}`, 10, 10);
+        doc.text(`Price: ${insurance?.Price}`, 10, 20);
+        doc.text(`Tax: ₹${(parseFloat(insurance.Price.replace(/[^\d.-]/g, '')) * 0.18).toFixed(2)}`, 10, 30);
+        doc.text(`Total: ₹${(parseFloat(insurance.Price.replace(/[^\d.-]/g, '')) * 1.18).toFixed(2)}`, 10, 40);
         
         // Save the PDF
         doc.save('insurance_bill.pdf');
@@ -64,8 +100,8 @@ const Payment = () => {
     return (
         <PaymentContainer>
             <PaymentLeft>
-                <h3>Payment for {selectedInsurance?.Title}</h3>
-                <p>Price: {selectedInsurance?.Price}</p>
+                <h3>Payment for {insurance?.Title}</h3>
+                <p>Price: {insurance?.Price}</p>
 
                 <h3>Select payment method</h3>
                 <PaymentOptions>
@@ -85,36 +121,8 @@ const Payment = () => {
                                     <input type="text" placeholder="Expiry (MM/YY)" />
                                     <input type="text" placeholder="CVV" />
                                 </CardRow>
-                                <button>Pay {selectedInsurance?.Price || 5900}</button>
+                                <button onClick={handlePayment}>Pay {insurance?.Price || 5900}</button>
                             </CardDetails>
-                        )}
-                    </PaymentOption>
-
-                    {/* Net Banking Option */}
-                    <PaymentOption>
-                        <PaymentOptionHeader onClick={() => handlePaymentSelection('NetBanking')}>
-                            <Icon><SiPaytm /></Icon>
-                            <OptionInfo>
-                                <h4>Net Banking</h4>
-                            </OptionInfo>
-                        </PaymentOptionHeader>
-                        {paymentMethod === 'NetBanking' && (
-                            <NetBankingDetails>
-                                <h4>Select Your Bank</h4>
-                                <BankButton onClick={() => setNetBankingOption('HDFC')}>HDFC Bank</BankButton>
-                                <BankButton onClick={() => setNetBankingOption('ICICI')}>ICICI Bank</BankButton>
-                                <BankButton onClick={() => setNetBankingOption('SBI')}>State Bank of India</BankButton>
-                                <BankButton onClick={() => setNetBankingOption('Axis')}>Axis Bank</BankButton>
-                                <BankButton onClick={() => setNetBankingOption('Kotak')}>Kotak Mahindra Bank</BankButton>
-                                <BankButton onClick={() => setNetBankingOption('PNB')}>Punjab National Bank</BankButton>
-
-                                {netBankingOption && (
-                                    <div>
-                                        <p>Selected Bank: {netBankingOption}</p>
-                                        <button>Pay {selectedInsurance?.Price || 5900}</button>
-                                    </div>
-                                )}
-                            </NetBankingDetails>
                         )}
                     </PaymentOption>
 
@@ -175,7 +183,7 @@ const Payment = () => {
                                             value={newUpiId}
                                             onChange={(e) => setNewUpiId(e.target.value)}
                                         />
-                                        <button>Pay {selectedInsurance?.Price || 5900}</button>
+                                        <button onClick={handlePayment}>Pay {insurance?.Price || 5900}</button>
                                     </div>
                                 )}
                             </UpiOptions>
@@ -184,26 +192,27 @@ const Payment = () => {
                 </PaymentOptions>
             </PaymentLeft>
 
+
             <PaymentRight>
                 <h3>Payment Summary</h3>
                 <Summary>
                     <Item>
                         <span>Insurance</span>
-                        <span>{selectedInsurance?.Price}</span>
+                        <span>{insurance?.Price}</span>
                     </Item>
                     <Item>
                         <span>Tax (18%)</span>
                         <span>
-                            ₹{selectedInsurance?.Price 
-                                ? (parseFloat(selectedInsurance.Price.replace(/[^\d.-]/g, '')) * 0.18).toFixed(2) 
+                            ₹{insurance?.Price 
+                                ? (parseFloat(insurance.Price.replace(/[^\d.-]/g, '')) * 0.18).toFixed(2) 
                                 : '900.00'}
                         </span>
                     </Item>
                     <Total>
                         <span>Total</span>
                         <span>
-                            ₹{selectedInsurance?.Price 
-                                ? (parseFloat(selectedInsurance.Price.replace(/[^\d.-]/g, '')) * 1.18).toFixed(2) 
+                            ₹{insurance?.Price 
+                                ? (parseFloat(insurance.Price.replace(/[^\d.-]/g, '')) * 1.18).toFixed(2) 
                                 : '900.00'}
                         </span>
                     </Total>
@@ -213,14 +222,14 @@ const Payment = () => {
                 {showBill && (
                     <BillContainer>
                         <h3>Bill</h3>
-                        <p>Insurance Type: {selectedInsurance?.Title}</p>
-                        <p>Price: {selectedInsurance?.Price}</p>
-                        <p>Tax: ₹{selectedInsurance?.Price 
-                            ? (parseFloat(selectedInsurance.Price.replace(/[^\d.-]/g, '')) * 0.18).toFixed(2) 
+                        <p>Insurance Type: {insurance?.Title}</p>
+                        <p>Price: {insurance?.Price}</p>
+                        <p>Tax: ₹{insurance?.Price 
+                            ? (parseFloat(insurance.Price.replace(/[^\d.-]/g, '')) * 0.18).toFixed(2) 
                             : '900.00'}
                         </p>
-                        <p>Total: ₹{selectedInsurance?.Price 
-                            ? (parseFloat(selectedInsurance.Price.replace(/[^\d.-]/g, '')) * 1.18).toFixed(2) 
+                        <p>Total: ₹{insurance?.Price 
+                            ? (parseFloat(insurance.Price.replace(/[^\d.-]/g, '')) * 1.18).toFixed(2) 
                             : '900.00'}
                         </p>
                         <DownloadButton onClick={downloadBill}>Download Bill</DownloadButton>

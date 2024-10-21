@@ -28,6 +28,84 @@ const userSchema = new mongoose.Schema({
 
 const User = mongoose.model('User', userSchema, 'user-details');
 
+// Define the Policy schema and model
+const newpolicySchema = new mongoose.Schema({
+    policyId: { type: String, required: true, unique: true },
+    policyHolder: {
+        name: { type: String, required: true },
+        email: { type: String, required: true },
+        contactNumber: { type: String, required: true },
+    },
+    vehicleDetails: {
+        vehicleType: String,
+        vehicleNumber: String,
+        model: String,
+    },
+    coverageAmount: Number,
+    premiumAmount: Number,
+    startDate: { type: Date, default: Date.now },
+    endDate: Date,
+    policyStatus: { type: String, enum: ['Active', 'Expired'], default: 'Active' }
+});
+
+const newPolicy = mongoose.model('UserPolicy', newpolicySchema, 'user-policy-details');
+
+// Helper function to generate a unique alphanumeric policy ID
+const generatePolicyId = () => {
+    return 'POL' + Math.random().toString(36).substring(2, 10).toUpperCase();
+};
+
+// Route to handle payment and policy creation
+app.post('/create-policy', async (req, res) => {
+    const { policyHolder, vehicleDetails, premiumAmount } = req.body;
+
+    try {
+        // Calculate coverage amount (premium * 12) and policy end date (1 year from now)
+        const coverageAmount = premiumAmount * 12;
+        const startDate = new Date();
+        const endDate = new Date();
+        endDate.setFullYear(startDate.getFullYear() + 1); // 1 year later
+
+        // Create a new policy object
+        const createdPolicy = new newPolicy({  // Renaming the local variable to 'createdPolicy'
+            policyId: generatePolicyId(),
+            policyHolder,
+            vehicleDetails,
+            coverageAmount,
+            premiumAmount,
+            startDate,
+            endDate,
+            policyStatus: 'Active'
+        });
+
+        // Save the policy to the database
+        await createdPolicy.save();
+        res.status(201).json({ message: 'Policy created successfully', policy: createdPolicy });
+    } catch (error) {
+        console.error('Error during policy creation:', error); // Log the error details
+        res.status(500).json({ error: 'Failed to create policy', details: error.message });
+    }
+});
+
+// Route to check and update policy status based on endDate
+app.put('/update-policy-status', async (req, res) => {
+    try {
+        const today = new Date();
+        const policies = await Policy.find({ endDate: { $lte: today } });
+
+        policies.forEach(async (policy) => {
+            if (policy.policyStatus !== 'Expired') {
+                policy.policyStatus = 'Expired';
+                await policy.save();
+            }
+        });
+
+        res.status(200).json({ message: 'Policy statuses updated successfully' });
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to update policy statuses', details: error.message });
+    }
+});
+
 // Define the Vehicle schema and model
 const vehicleSchema = new mongoose.Schema({
     vehicleNumber: String,
@@ -131,8 +209,8 @@ app.post('/api/login', async (req, res) => {
     const { email, password } = req.body;
 
     try {
-        // Check if the user exists
-        const user = await User.findOne({ email });
+        // Find the user by email, excluding the password field in the response
+        const user = await User.findOne({ email }); 
         if (!user) {
             return res.status(404).json({ message: 'User not found' });
         }
@@ -143,8 +221,11 @@ app.post('/api/login', async (req, res) => {
             return res.status(400).json({ message: 'Invalid password' });
         }
 
-        // Successful login
-        res.status(200).json({ message: 'Login successful', user });
+        // Send a response with all the user information except the password
+        res.status(200).json({ 
+            message: 'Login successful', 
+            user // This includes the full user object (without password)
+        });
     } catch (err) {
         res.status(500).json({ message: 'Server error', error: err });
     }
