@@ -30,8 +30,10 @@ const PriceList = () => {
 
     const handleAgree = () => {
         setShowModal(false);
-        navigate('/payment', { state: { insurance: selectedInsurance } });
+        console.log(selectedInsurance);
+        navigate('/login', { state: { insurance: selectedInsurance } }); // Navigate to login page with selected policy
     };
+    
 
     const handleClose = () => {
         setShowModal(false);

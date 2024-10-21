@@ -1,14 +1,34 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import styled from 'styled-components';
 import { FaCreditCard } from 'react-icons/fa';
 import { SiPaytm } from 'react-icons/si';
 import { FaGooglePay } from 'react-icons/fa';
+import jsPDF from 'jspdf';
 
 const Payment = () => {
+    const location = useLocation();
+    const selectedInsurance = location.state?.insurance; // Retrieve selected policy
+
     const [paymentMethod, setPaymentMethod] = useState('');
     const [upiOption, setUpiOption] = useState('');
     const [newUpiId, setNewUpiId] = useState('');
     const [netBankingOption, setNetBankingOption] = useState('');
+    const [showBill, setShowBill] = useState(false); // State to show bill
+
+    const calculateEndDate = () => {
+        const currentDate = new Date();
+        currentDate.setFullYear(currentDate.getFullYear() + 1); // Add 1 year for policy end date
+        return currentDate.toISOString().split('T')[0]; // Return in YYYY-MM-DD format
+    };
+
+    useEffect(() => {
+        if (selectedInsurance) {
+            const policyEndDate = calculateEndDate();
+            console.log('Selected Insurance:', selectedInsurance);
+            console.log('Policy End Date:', policyEndDate);
+        }
+    }, [selectedInsurance]);
 
     const handlePaymentSelection = (method) => {
         setPaymentMethod(method);
@@ -22,9 +42,31 @@ const Payment = () => {
         setNewUpiId(''); // Reset UPI ID input when UPI option is selected
     };
 
+    const handleContinue = () => {
+        // Show the bill when "Continue" is clicked
+        setShowBill(true);
+    };
+
+    const downloadBill = () => {
+        const doc = new jsPDF();
+
+        // Add content to the PDF
+        doc.setFontSize(16);
+        doc.text(`Bill for Insurance: ${selectedInsurance?.Title}`, 10, 10);
+        doc.text(`Price: ${selectedInsurance?.Price}`, 10, 20);
+        doc.text(`Tax: ₹${(parseFloat(selectedInsurance.Price.replace(/[^\d.-]/g, '')) * 0.18).toFixed(2)}`, 10, 30);
+        doc.text(`Total: ₹${(parseFloat(selectedInsurance.Price.replace(/[^\d.-]/g, '')) * 1.18).toFixed(2)}`, 10, 40);
+        
+        // Save the PDF
+        doc.save('insurance_bill.pdf');
+    };
+
     return (
         <PaymentContainer>
             <PaymentLeft>
+                <h3>Payment for {selectedInsurance?.Title}</h3>
+                <p>Price: {selectedInsurance?.Price}</p>
+
                 <h3>Select payment method</h3>
                 <PaymentOptions>
                     {/* Credit/Debit/ATM Card Option */}
@@ -43,7 +85,7 @@ const Payment = () => {
                                     <input type="text" placeholder="Expiry (MM/YY)" />
                                     <input type="text" placeholder="CVV" />
                                 </CardRow>
-                                <button>Pay ₹5,900</button>
+                                <button>Pay {selectedInsurance?.Price || 5900}</button>
                             </CardDetails>
                         )}
                     </PaymentOption>
@@ -69,7 +111,7 @@ const Payment = () => {
                                 {netBankingOption && (
                                     <div>
                                         <p>Selected Bank: {netBankingOption}</p>
-                                        <button>Pay ₹5,900</button>
+                                        <button>Pay {selectedInsurance?.Price || 5900}</button>
                                     </div>
                                 )}
                             </NetBankingDetails>
@@ -133,7 +175,7 @@ const Payment = () => {
                                             value={newUpiId}
                                             onChange={(e) => setNewUpiId(e.target.value)}
                                         />
-                                        <button>Pay ₹5,900</button>
+                                        <button>Pay {selectedInsurance?.Price || 5900}</button>
                                     </div>
                                 )}
                             </UpiOptions>
@@ -146,152 +188,119 @@ const Payment = () => {
                 <h3>Payment Summary</h3>
                 <Summary>
                     <Item>
-                        <span>Car Insurance</span>
-                        <span>₹5,000.00</span>
+                        <span>Insurance</span>
+                        <span>{selectedInsurance?.Price}</span>
                     </Item>
                     <Item>
                         <span>Tax (18%)</span>
-                        <span>₹900.00</span>
+                        <span>
+                            ₹{selectedInsurance?.Price 
+                                ? (parseFloat(selectedInsurance.Price.replace(/[^\d.-]/g, '')) * 0.18).toFixed(2) 
+                                : '900.00'}
+                        </span>
                     </Item>
                     <Total>
                         <span>Total</span>
-                        <span>₹5,900.00</span>
+                        <span>
+                            ₹{selectedInsurance?.Price 
+                                ? (parseFloat(selectedInsurance.Price.replace(/[^\d.-]/g, '')) * 1.18).toFixed(2) 
+                                : '900.00'}
+                        </span>
                     </Total>
                 </Summary>
-                <ContinueButton>Continue</ContinueButton>
+                <ContinueButton onClick={handleContinue}>Continue</ContinueButton>
+
+                {showBill && (
+                    <BillContainer>
+                        <h3>Bill</h3>
+                        <p>Insurance Type: {selectedInsurance?.Title}</p>
+                        <p>Price: {selectedInsurance?.Price}</p>
+                        <p>Tax: ₹{selectedInsurance?.Price 
+                            ? (parseFloat(selectedInsurance.Price.replace(/[^\d.-]/g, '')) * 0.18).toFixed(2) 
+                            : '900.00'}
+                        </p>
+                        <p>Total: ₹{selectedInsurance?.Price 
+                            ? (parseFloat(selectedInsurance.Price.replace(/[^\d.-]/g, '')) * 1.18).toFixed(2) 
+                            : '900.00'}
+                        </p>
+                        <DownloadButton onClick={downloadBill}>Download Bill</DownloadButton>
+                    </BillContainer>
+                )}
             </PaymentRight>
         </PaymentContainer>
     );
 };
 
+// Styled Components
 const PaymentContainer = styled.div`
     display: flex;
     justify-content: space-between;
     padding: 20px;
-    background-color: #f9f9f9;
-    gap: 20px;
 `;
 
 const PaymentLeft = styled.div`
-    flex: 0.6;
-    background: white;
+    flex: 2;
+    padding-right: 20px;
+`;
+
+const PaymentRight = styled.div`
+    flex: 1;
+    background-color: #f9f9f9;
     padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 5px;
 `;
 
 const PaymentOptions = styled.div`
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
+    margin-top: 20px;
 `;
 
 const PaymentOption = styled.div`
-    border: 2px solid #ddd;
-    border-radius: 10px;
-    transition: 0.3s;
-    &:hover {
-        border-color: #007bff;
-        background-color: #f0f8ff;
-    }
+    margin-bottom: 20px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    padding: 10px;
 `;
 
 const PaymentOptionHeader = styled.div`
     display: flex;
     align-items: center;
-    padding: 15px;
     cursor: pointer;
 `;
 
 const Icon = styled.div`
-    font-size: 30px;
-    margin-right: 20px;
+    margin-right: 10px;
+    font-size: 20px;
 `;
 
-const OptionInfo = styled.div`
-    flex-grow: 1;
-    h4 {
-        margin: 0;
-    }
-    p {
-        color: gray;
-        margin: 5px 0 0 0;
-    }
-`;
+const OptionInfo = styled.div``;
 
-const CardDetails = styled.div`
-    padding: 15px;
-    input {
-        margin-top: 10px;
-        padding: 10px;
-        border-radius: 5px;
-        border: 1px solid #ddd;
-        width: 100%;
-    }
-    button {
-        margin-top: 10px;
-        padding: 10px;
-        background-color: #007bff;
-        color: white;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
-        &:hover {
-            background-color: #0056b3;
-        }
-    }
-`;
+const CardDetails = styled.div``;
 
 const CardRow = styled.div`
     display: flex;
-    gap: 10px;
-    input {
-        flex: 1;
-    }
+    justify-content: space-between;
 `;
 
-const NetBankingDetails = styled.div`
-    padding: 15px;
+const NetBankingDetails = styled.div``;
+
+const UpiOptions = styled.div``;
+
+const UpiOption = styled.div`
+    margin: 5px 0;
 `;
 
 const BankButton = styled.button`
-    display: block;
-    margin-top: 10px;
+    margin: 5px 0;
     padding: 10px;
+    background-color: #4caf50;
+    color: white;
     border: none;
     border-radius: 5px;
-    background-color: #007bff;
-    color: white;
     cursor: pointer;
-    width: 100%;
+
     &:hover {
-        background-color: #0056b3;
+        background-color: #45a049;
     }
-`;
-
-const UpiOptions = styled.div`
-    padding: 15px;
-`;
-
-const UpiOption = styled.div`
-    margin-bottom: 10px;
-    label {
-        cursor: pointer;
-        font-size: 16px;
-        display: flex;
-        align-items: center;
-    }
-    input {
-        margin-right: 10px;
-    }
-`;
-
-const PaymentRight = styled.div`
-    flex: 0.4;
-    background: white;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 `;
 
 const Summary = styled.div`
@@ -301,26 +310,50 @@ const Summary = styled.div`
 const Item = styled.div`
     display: flex;
     justify-content: space-between;
-    margin-bottom: 10px;
+    padding: 5px 0;
 `;
 
-const Total = styled(Item)`
+const Total = styled.div`
+    display: flex;
+    justify-content: space-between;
     font-weight: bold;
-    font-size: 18px;
+    padding: 10px 0;
 `;
 
 const ContinueButton = styled.button`
-    margin-top: 20px;
+    margin-top: 10px;
     padding: 10px;
-    background-color: #007bff;
+    background-color: #2196f3;
     color: white;
     border: none;
     border-radius: 5px;
     cursor: pointer;
-    width: 100%;
+
     &:hover {
-        background-color: #0056b3;
+        background-color: #1976d2;
+    }
+`;
+
+const BillContainer = styled.div`
+    margin-top: 20px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    padding: 10px;
+`;
+
+const DownloadButton = styled.button`
+    margin-top: 10px;
+    padding: 10px;
+    background-color: #f44336;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+
+    &:hover {
+        background-color: #e53935;
     }
 `;
 
 export default Payment;
+

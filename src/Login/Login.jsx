@@ -2,8 +2,11 @@ import React, { useState } from 'react';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import BackgroundImage from './image.png'; // Image is in the same folder as Login.jsx
+import { useLocation } from 'react-router-dom';
 
 const Login = () => {
+    const location = useLocation();
+    const selectedInsurance = location.state?.insurance;
     const [formData, setFormData] = useState({
         email: '',
         password: ''
@@ -23,7 +26,7 @@ const Login = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError(''); // Clear any previous errors
-
+    
         try {
             // Send a POST request to login API
             const response = await fetch('http://localhost:5000/api/login', {
@@ -33,15 +36,18 @@ const Login = () => {
                 },
                 body: JSON.stringify(formData),
             });
-
+    
             const data = await response.json();
-
+    
             if (response.ok) {
-                console.log('Login successful:', data);
-                // Navigate to a different page (e.g., dashboard) after successful login
-                navigate('/dashboard');
+                if (selectedInsurance) {
+                    // Redirect to the payment page with insurance (selectedInsurance)
+                    navigate('/payment', { state: { insurance: selectedInsurance } });
+                } else {
+                    // Redirect to dashboard if no policy is selected
+                    navigate('/dashboard');
+                }
             } else {
-                // Display error message if login fails
                 setError(data.message || 'Login failed. Please try again.');
             }
         } catch (error) {
@@ -49,6 +55,7 @@ const Login = () => {
             setError('An error occurred. Please try again later.');
         }
     };
+    
 
     // Navigate to the signup page when clicking the "Sign Up" button
     const handleSignUpClick = () => {

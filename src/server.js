@@ -150,6 +150,27 @@ app.post('/api/login', async (req, res) => {
     }
 });
 
+// API to store user policy with end date
+app.post('/api/store-policy', async (req, res) => {
+    const { userId, policyId, endDate } = req.body;
+
+    try {
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        // Store the policy with the end date for the user
+        user.policies.push({ policyId, endDate });
+        await user.save();
+
+        res.status(201).json({ message: 'Policy stored successfully' });
+    } catch (err) {
+        res.status(500).json({ message: 'Server error', error: err });
+    }
+});
+
+
 
 
 app.listen(port, () => {
