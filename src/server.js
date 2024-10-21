@@ -7,7 +7,7 @@ const app = express();
 const port = 5000;
 
 // Middleware
-app.use(cors());
+app.use(cors());//
 app.use(express.json()); // convert jason string to javascript object
 
 // MongoDB connection

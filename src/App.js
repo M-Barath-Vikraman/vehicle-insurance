@@ -9,6 +9,7 @@ import PriceList from './PriceList/PriceList';
 import Payment from './Payment/payment';
 // import AdminLogin from './Admin/AdminLogin'; // Correct the import here
 import Dashboard from "./UserDashboard/Dashboard"
+import AdminPage from "./AdminPage/adminpage"
 
 function App() {
     return (
@@ -24,6 +25,7 @@ function App() {
                     <Route path="/payment" element={<Payment />} />
                     {/* <Route path="/admin-login" element={<AdminLogin />} /> Update the route here */}
                     <Route path="/Dashboard" element={<Dashboard />}/>
+                    <Route path="/adminpage" element={<AdminPage />} />
                 </Routes>
             </div>
         </Router>
