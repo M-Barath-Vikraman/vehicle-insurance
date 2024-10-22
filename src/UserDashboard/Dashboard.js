@@ -1,75 +1,64 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
-import { useNavigate } from 'react-router-dom'; // Import useNavigate for navigation
+import { useNavigate, useLocation } from 'react-router-dom'; // useLocation to get passed state
 
 const UserDashboard = () => {
-  const navigate = useNavigate(); // Initialize the navigate hook
-
-  // Simulated user data and policy list
-  const [userName] = useState('John Doe');
-  const [policies] = useState([
-    {
-      policyId: 'POLICY12345',
-      policyHolder: {
-        name: 'John Doe',
-        email: 'johndoe@example.com',
-        contactNumber: '123-456-7890',
-      },
-      vehicleDetails: {
-        type: 'Car',
-        number: 'ABC-1234',
-        model: 'Tesla Model 3',
-      },
-      coverageAmount: '$100,000',
-      premiumAmount: '$1,200',
-      startDate: '2023-01-01',
-      endDate: '2024-01-01',
-      policyStatus: 'Active',
-    },
-    {
-      policyId: 'POLICY67890',
-      policyHolder: {
-        name: 'John Doe',
-        email: 'johndoe@example.com',
-        contactNumber: '123-456-7890',
-      },
-      vehicleDetails: {
-        type: 'Motorcycle',
-        number: 'XYZ-5678',
-        model: 'Harley Davidson',
-      },
-      coverageAmount: '$50,000',
-      premiumAmount: '$800',
-      startDate: '2022-05-15',
-      endDate: '2023-05-15',
-      policyStatus: 'Expired',
-    },
-  ]);
-
-  // State to track which policy's details are visible
+  const [policies, setPolicies] = useState([]);
   const [selectedPolicyId, setSelectedPolicyId] = useState(null);
+  const location = useLocation(); // Access the state passed through navigate
+  const { user } = location.state || {}; // Extract user details from location state
+  const navigate = useNavigate();
+  
+  useEffect(() => {
+    if (user && user.email) {
+      fetchPolicies(user.email);
+    }
+  }, [user]);
 
-  // Toggle the selected policy
+  const fetchPolicies = async (email) => {
+    try {
+      const response = await fetch(`/api/user-policies/${email}`); // Replace with your backend API
+      const data = await response.json();
+  
+      // Ensure the response is an array
+      if (Array.isArray(data)) {
+        setPolicies(data); // Set policies only if the response is an array
+      } else {
+        console.error('Unexpected data format, expected an array:', data);
+        setPolicies([]); // Reset policies to an empty array if data is not valid
+      }
+    } catch (error) {
+      console.error('Error fetching policies:', error);
+      setPolicies([]); // Handle error by resetting policies to an empty array
+    }
+  };
+  
+
   const togglePolicyDetails = (policyId) => {
     setSelectedPolicyId(selectedPolicyId === policyId ? null : policyId);
   };
 
-  // Handle navigation to PriceList.js
   const goToPoliciesPage = () => {
-    navigate('/price-list'); // Navigate to the correct path for PriceList.js
+    navigate('/price-list', { 
+      state: { 
+        isLoggin: true,
+        name: user?.name,
+        email: user?.email,
+        phoneNumber: user?.phoneNumber
+      } 
+    });
   };
 
   return (
     <DashboardWrapper>
       <DashboardContainer>
-        <UserName>Welcome, {userName}</UserName>
+        <UserName>Welcome, {user?.name || 'User'}</UserName>
         <PolicyList>
           {policies.map((policy) => (
             <PolicyCard key={policy.policyId}>
               <PolicyHeader onClick={() => togglePolicyDetails(policy.policyId)}>
                 {policy.policyId}
               </PolicyHeader>
-              {/* Only show details if this policy is selected */}
               {selectedPolicyId === policy.policyId && (
                 <>
                   <PolicyDetail>

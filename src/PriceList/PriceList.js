@@ -10,7 +10,12 @@ const PriceList = () => {
     const [policies, setPolicies] = useState([]); // To store policies fetched from the server
     const [selectedInsurance, setSelectedInsurance] = useState(null); // To store the selected insurance for modal
     const [showModal, setShowModal] = useState(false); // To control modal visibility
+    const [showCarDetailsModal, setShowCarDetailsModal] = useState(false); // New state for car details modal
+    const [carNum, setCarNumber] = useState('');
+    const [carMod, setCarModel] = useState('');
+    const [brand, setBrandName] = useState('');
     const navigate = useNavigate();
+    const { isLoggin,name,email,phoneNumber } = location.state || {}; 
 
     // Fetch policies from the server when the component loads
     useEffect(() => {
@@ -31,18 +36,42 @@ const PriceList = () => {
         setShowModal(true); // Show modal when user clicks "Insure"
     };
 
+    const handleCarDetailsSubmit = () => {
+        if (isLoggin) {
+            // Navigate to payment page with necessary information if logged in
+            navigate('/payment', { 
+                state: { 
+                    insurance: selectedInsurance,
+                    name,
+                    email,
+                    phoneNumber,
+                    carNumber: carNum,
+                    carModel: carMod,
+                    brandName: brand
+                } 
+            });
+        }
+        setShowCarDetailsModal(false); // Close car details modal
+    };
+
     const handleAgree = () => {
         setShowModal(false);
         console.log(selectedInsurance);
-        navigate('/login', { 
-            state: { 
-                insurance: selectedInsurance,
-                carNumber: carNumber,
-                carModel: carModel,
-                brandName: brandName
-            } 
-        }); // Navigate to login page with selected policy
+        if (carNumber && carModel && brandName) {
+            // If no car details are provided, navigate to login page
+            navigate('/login', { 
+                state: { 
+                    insurance: selectedInsurance,
+                    carNumber: carNumber,
+                    carModel: carModel,
+                    brandName: brandName
+                } 
+            });
+        } else {
+            setShowCarDetailsModal(true);
+        }
     };
+         // Navigate to login page with selected policy
     
 
     const handleClose = () => {
@@ -77,6 +106,40 @@ const PriceList = () => {
                     </ModalContent>
                 </Modal>
             )}
+
+            {/* Car Details Modal */}
+            {showCarDetailsModal && (
+                <Modal>
+                    <ModalContent>
+                        <ModalTitle>Enter Car Details</ModalTitle>
+                        <ModalDescription>
+                            <input 
+                                type="text" 
+                                placeholder="Car Number" 
+                                value={carNumber} 
+                                onChange={(e) => setCarNumber(e.target.value)} 
+                            />
+                            <input 
+                                type="text" 
+                                placeholder="Car Model" 
+                                value={carModel} 
+                                onChange={(e) => setCarModel(e.target.value)} 
+                            />
+                            <input 
+                                type="text" 
+                                placeholder="Brand Name" 
+                                value={brandName} 
+                                onChange={(e) => setBrandName(e.target.value)} 
+                            />
+                        </ModalDescription>
+                        <ModalActions>
+                            <AgreeButton onClick={handleCarDetailsSubmit}>Submit</AgreeButton>
+                            <CloseButton onClick={handleClose}>Close</CloseButton>
+                        </ModalActions>
+                    </ModalContent>
+                </Modal>
+            )}
+
         </Container>
     );
 };

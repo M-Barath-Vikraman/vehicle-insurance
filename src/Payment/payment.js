@@ -10,7 +10,15 @@ import axios from 'axios';
 
 const Payment = () => {
     const location = useLocation();
-    const { insurance, user,carNumber, carModel,brandName  } = location.state || {}; // Retrieve selected policy
+    const { 
+        insurance, 
+        name, 
+        email, 
+        phoneNumber, 
+        carNumber,
+        carModel, 
+        brandName 
+    } = location.state || {}; // Retrieve selected policy
 
     const [paymentMethod, setPaymentMethod] = useState('');
     const [upiOption, setUpiOption] = useState('');
@@ -50,10 +58,11 @@ const Payment = () => {
 
             // Prepare the policy data
             const policyData = {
+                policyName: insurance.Title,
                 policyHolder: {
-                    name: user.name,
-                    email: user.email,
-                    contactNumber: user.phoneNumber,
+                    name: name,
+                    email: email,
+                    phoneNumber: phoneNumber,
                 },
                 vehicleDetails: {
                     vehicleType: brandName,

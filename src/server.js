@@ -31,6 +31,7 @@ const User = mongoose.model('User', userSchema, 'user-details');
 // Define the Policy schema and model
 const newpolicySchema = new mongoose.Schema({
     policyId: { type: String, required: true, unique: true },
+    policyName: { type: String, required: true },
     policyHolder: {
         name: { type: String, required: true },
         email: { type: String, required: true },
@@ -57,7 +58,7 @@ const generatePolicyId = () => {
 
 // Route to handle payment and policy creation
 app.post('/create-policy', async (req, res) => {
-    const { policyHolder, vehicleDetails, premiumAmount } = req.body;
+    const { policyName,policyHolder, vehicleDetails, premiumAmount } = req.body;
 
     try {
         // Calculate coverage amount (premium * 12) and policy end date (1 year from now)
@@ -69,6 +70,7 @@ app.post('/create-policy', async (req, res) => {
         // Create a new policy object
         const createdPolicy = new newPolicy({  // Renaming the local variable to 'createdPolicy'
             policyId: generatePolicyId(),
+            policyName,
             policyHolder,
             vehicleDetails,
             coverageAmount,
@@ -86,6 +88,54 @@ app.post('/create-policy', async (req, res) => {
         res.status(500).json({ error: 'Failed to create policy', details: error.message });
     }
 });
+
+app.get('/api/user-policies/:email', async (req, res) => {
+    const { email } = req.params;
+
+    try {
+        // Find the user by email
+        const user = await User.findOne({ email });
+
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        // Assuming policies are stored in a different collection (newPolicy)
+        const policies = await newPolicy.find({ 'policyHolder.email': email });
+
+        if (!policies || policies.length === 0) {
+            return res.status(404).json({ message: 'No policies found for this user' });
+        }
+
+        // Map through each policy to ensure it's formatted correctly
+        const formattedPolicies = policies.map(policy => ({
+            policyId: policy.policyId,
+            policyName: policy.policyName,
+            policyHolder: {
+                name: policy.policyHolder.name,
+                email: policy.policyHolder.email,
+                phoneNumber: policy.policyHolder.phoneNumber
+            },
+            vehicleDetails: {
+                type: policy.vehicleDetails.vehicleType,
+                number: policy.vehicleDetails.vehicleNumber,
+                model: policy.vehicleDetails.model
+            },
+            coverageAmount: policy.coverageAmount,
+            premiumAmount: policy.premiumAmount,
+            startDate: policy.startDate,
+            endDate: policy.endDate,
+            policyStatus: policy.policyStatus
+        }));
+
+        // Return the formatted policies array
+        res.status(200).json(formattedPolicies);
+    } catch (err) {
+        console.error('Error fetching user policies:', err);
+        res.status(500).json({ message: 'Server error', error: err.message });
+    }
+});
+
 
 // Route to check and update policy status based on endDate
 app.put('/update-policy-status', async (req, res) => {

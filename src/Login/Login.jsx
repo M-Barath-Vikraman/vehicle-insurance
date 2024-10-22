@@ -47,7 +47,11 @@ const Login = () => {
     
                 if (selectedInsurance) {
                     // If an insurance policy was selected, navigate to the payment page with insurance and user details
-                    navigate('/payment', { state: { insurance: selectedInsurance, user,carNumber,carModel,brandName  } });
+                    navigate('/payment', { state: { insurance: selectedInsurance, user: {
+                        name: user.name,
+                        email: user.email,
+                        phoneNumber: user.phoneNumber
+                    },carNumber,carModel,brandName  } });
                 } else {
                     // If no insurance is selected, redirect to the dashboard with user details
                     navigate('/dashboard', { state: { user } });
