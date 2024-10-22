@@ -133,7 +133,9 @@ const Payment = () => {
                                     <input type="text" placeholder="Expiry (MM/YY)" />
                                     <input type="text" placeholder="CVV" />
                                 </CardRow>
-                                <button onClick={handlePayment}>Pay {insurance?.Price || 5900}</button>
+                                <button onClick={handlePayment}>Pay ₹{insurance?.Price 
+                                ? (parseFloat(insurance.Price.replace(/[^\d.-]/g, '')) * 1.18).toFixed(2) 
+                                : '900.00'}</button>
                             </CardDetails>
                         )}
                     </PaymentOption>
@@ -195,7 +197,9 @@ const Payment = () => {
                                             value={newUpiId}
                                             onChange={(e) => setNewUpiId(e.target.value)}
                                         />
-                                        <button onClick={handlePayment}>Pay {insurance?.Price || 5900}</button>
+                                        <button onClick={handlePayment}>Pay ₹{insurance?.Price 
+                                ? (parseFloat(insurance.Price.replace(/[^\d.-]/g, '')) * 1.18).toFixed(2) 
+                                : '900.00'}</button>
                                     </div>
                                 )}
                             </UpiOptions>
