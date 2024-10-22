@@ -55,6 +55,9 @@ const Payment = () => {
     const handlePayment = async () => {
         try {
             const premiumAmount = parseFloat(insurance?.Price.replace(/[^\d.-]/g, '')) || 5900;
+            console.log('Name:', name);
+            console.log('Phone Number:', phoneNumber);
+            console.log('Email:', email);
 
             // Prepare the policy data
             const policyData = {
@@ -62,7 +65,7 @@ const Payment = () => {
                 policyHolder: {
                     name: name,
                     email: email,
-                    phoneNumber: phoneNumber,
+                    contactNumber: phoneNumber,
                 },
                 vehicleDetails: {
                     vehicleType: brandName,
@@ -130,7 +133,9 @@ const Payment = () => {
                                     <input type="text" placeholder="Expiry (MM/YY)" />
                                     <input type="text" placeholder="CVV" />
                                 </CardRow>
-                                <button onClick={handlePayment}>Pay {insurance?.Price || 5900}</button>
+                                <button onClick={handlePayment}>Pay ₹{insurance?.Price 
+                                ? (parseFloat(insurance.Price.replace(/[^\d.-]/g, '')) * 1.18).toFixed(2) 
+                                : '900.00'}</button>
                             </CardDetails>
                         )}
                     </PaymentOption>
@@ -192,7 +197,9 @@ const Payment = () => {
                                             value={newUpiId}
                                             onChange={(e) => setNewUpiId(e.target.value)}
                                         />
-                                        <button onClick={handlePayment}>Pay {insurance?.Price || 5900}</button>
+                                        <button onClick={handlePayment}>Pay ₹{insurance?.Price 
+                                ? (parseFloat(insurance.Price.replace(/[^\d.-]/g, '')) * 1.18).toFixed(2) 
+                                : '900.00'}</button>
                                     </div>
                                 )}
                             </UpiOptions>
