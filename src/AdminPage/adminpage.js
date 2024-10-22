@@ -5,12 +5,13 @@ import { PieChart, Pie, Tooltip, Cell } from 'recharts';
 
 const AdminPage = () => {
     const [policies, setPolicies] = useState([]);
+    const [userPolicies, setUserPolicies] = useState([]); // State to store user policies
     const [formData, setFormData] = useState({ title: '', description: '', price: '', terms: '' });
     const [isModalOpen, setModalOpen] = useState(false);
-    const [selectedPolicy, setSelectedPolicy] = useState(null); // For showing selected policy details
+    const [selectedPolicy, setSelectedPolicy] = useState(null);
     const [activePage, setActivePage] = useState('home');
-    const [clickedPolicy, setClickedPolicy] = useState(null); // Track the clicked policy for pie chart
-
+    const [clickedPolicy, setClickedPolicy] = useState(null);
+    
     const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#AF19FF'];
 
     // Fetch policies from the server
@@ -24,11 +25,63 @@ const AdminPage = () => {
         }
     };
 
+    // Fetch user policies from the server
+    const fetchUserPolicies = async () => {
+        try {
+            const response = await fetch('http://localhost:5000/api/user-policies');
+            const data = await response.json();
+            console.log(data);
+            setUserPolicies(data); // Store the fetched user policies
+        } catch (error) {
+            console.error('Error fetching user policies:', error);
+        }
+    };
+
     // Handle input changes for the form
     const handleInputChange = (e) => {
         const { name, value } = e.target;
         setFormData((prev) => ({ ...prev, [name]: value }));
     };
+
+    // Define the UserDetailsSection component
+    const UserDetailsSection = ({ userPolicies }) => {
+        // Ensure userPolicies is an array
+        const policiesArray = Array.isArray(userPolicies) ? userPolicies : [userPolicies];
+        
+        return (
+            <div>
+                <h2>User Policies</h2>
+                {policiesArray.length > 0 ? (
+                    <ul>
+                        {policiesArray.map((policy, index) => (
+                            <li key={index}>
+                                <strong>Policy ID:</strong> {policy?.policyId || 'N/A'} <br />
+                                <strong>Policy Name:</strong> {policy?.policyName || 'N/A'} <br />
+                                
+                                {/* Policy Holder Details */}
+                                <strong>Policy Holder:</strong> {policy?.policyHolder?.name || 'N/A'} <br />
+                                <strong>Email:</strong> {policy?.policyHolder?.email || 'N/A'} <br />
+                                <strong>Contact Number:</strong> {policy?.policyHolder?.contactNumber || 'N/A'} <br />
+                                
+                                {/* Vehicle Details */}
+                                <strong>Vehicle Type:</strong> {policy?.vehicleDetails?.vehicleType || 'N/A'} <br />
+                                <strong>Vehicle Number:</strong> {policy?.vehicleDetails?.vehicleNumber || 'N/A'} <br />
+                                <strong>Model:</strong> {policy?.vehicleDetails?.model || 'N/A'} <br />
+                                <strong>Coverage Amount:</strong> {policy?.vehicleDetails?.coverageAmount || 'N/A'} <br />
+                                <strong>Premium Amount:</strong> {policy?.vehicleDetails?.premiumAmount || 'N/A'} <br />
+                                <strong>Start Date:</strong> {policy?.vehicleDetails?.startDate ? new Date(policy.vehicleDetails.startDate).toLocaleDateString() : 'N/A'} <br />
+                                <strong>End Date:</strong> {policy?.vehicleDetails?.endDate ? new Date(policy.vehicleDetails.endDate).toLocaleDateString() : 'N/A'} <br />
+                                <strong>Policy Status:</strong> {policy?.policyStatus || 'N/A'}
+                            </li>
+                        ))}
+                    </ul>
+                ) : (
+                    <p>No user policies available.</p>
+                )}
+            </div>
+        );
+    };
+    
 
     // Add new policy
     const handleAddPolicy = async () => {
@@ -76,14 +129,16 @@ const AdminPage = () => {
     // Handle pie chart click to show details of the clicked policy
     const handlePieClick = (policyName) => {
         const policy = policies.find((p) => p.Title === policyName);
-        setClickedPolicy(policyName); // Set the clicked policy name
-        setSelectedPolicy(policy); // Set the selected policy object for details display
+        setClickedPolicy(policyName);
+        setSelectedPolicy(policy);
     };
 
-    // Fetch policies when "Home" is clicked
+    // Fetch policies or user policies based on activePage
     useEffect(() => {
         if (activePage === 'home') {
             fetchPolicies();
+        } else if (activePage === 'user') {
+            fetchUserPolicies(); // Fetch user policies when "User Details" is clicked
         }
     }, [activePage]);
 
@@ -107,9 +162,9 @@ const AdminPage = () => {
                     cx="50%"
                     cy="50%"
                     outerRadius={150}
-                    innerRadius={70} // Added to make it a doughnut chart
+                    innerRadius={70}
                     fill="#8884d8"
-                    onClick={(data) => handlePieClick(data.name)} // Show details on click
+                    onClick={(data) => handlePieClick(data.name)}
                 >
                     {data.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={entry.color} />
@@ -129,7 +184,10 @@ const AdminPage = () => {
                 <SidebarButton onClick={() => setActivePage('policy')} active={activePage === 'policy'}>
                     Policies
                 </SidebarButton>
-                <SidebarButton onClick={() => setActivePage('user')} active={activePage === 'user'}>
+                <SidebarButton onClick={() => setActivePage('user')} active={activePage === 'user' && (
+    <UserDetailsSection userPolicies={userPolicies} />
+)}
+>
                     User Details
                 </SidebarButton>
             </Sidebar>
@@ -137,7 +195,7 @@ const AdminPage = () => {
             <Content>
                 {activePage === 'home' && (
                     <ChartSection>
-                        {renderPieChart()} {/* Render the doughnut chart */}
+                        {renderPieChart()}
                         {selectedPolicy && (
                             <PolicyDetails>
                                 <h3>{selectedPolicy.Title}</h3>
@@ -153,7 +211,7 @@ const AdminPage = () => {
                     <>
                         <ButtonWrapper>
                             <ActionButton onClick={() => setModalOpen(true)} className="add-policy">
-                                <FaPlus /> {/* Only icon shown */}
+                                <FaPlus />
                             </ActionButton>
                         </ButtonWrapper>
 
@@ -162,7 +220,7 @@ const AdminPage = () => {
                             {policies.map((policy) => (
                                 <PolicyItem key={policy._id} onClick={() => handlePieClick(policy.Title)}>
                                     <PolicyTitle>
-                                        <strong>{policy.Title}</strong> {/* Display only policy name */}
+                                        <strong>{policy.Title}</strong>
                                     </PolicyTitle>
                                     <ActionButtons>
                                         <DeleteButton
@@ -194,7 +252,20 @@ const AdminPage = () => {
                     </>
                 )}
 
-                {activePage === 'user' && <h2>User Details Section</h2>}
+                {activePage === 'user' && (
+                    <UserDetailsSection>
+                        <h2>User Policies</h2>
+                        {userPolicies.length > 0 ? (
+                            <ul>
+                                {userPolicies.map((policy) => (
+                                    <li key={policy._id}>{policy.Title} - {policy.Description}</li>
+                                ))}
+                            </ul>
+                        ) : (
+                            <p>No user policies available</p>
+                        )}
+                    </UserDetailsSection>
+                )}
             </Content>
         </Container>
     );

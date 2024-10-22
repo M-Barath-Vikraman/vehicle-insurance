@@ -89,6 +89,24 @@ app.post('/create-policy', async (req, res) => {
     }
 });
 
+// API endpoint to fetch all user-policy details
+app.get('/api/user-policies', async (req, res) => {
+    try {
+        // Fetch all policies from the 'user-policy-details' collection
+        const policies = await newPolicy.find();
+        
+        if (!policies || policies.length === 0) {
+            return res.status(404).json({ message: 'No policies found' });
+        }
+
+        // Send the fetched policies
+        res.status(200).json(policies);
+    } catch (err) {
+        console.error('Error fetching all user policies:', err);
+        res.status(500).json({ message: 'Server error', error: err.message });
+    }
+});
+
 app.get('/api/user-policies/:email', async (req, res) => {
     const { email } = req.params;
 
