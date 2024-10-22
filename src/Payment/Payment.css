@@ -1,0 +1,74 @@
+.payment-container {
+    display: flex;
+    justify-content: space-between;
+    padding: 20px;
+}
+
+.payment-left {
+    flex: 1; /* This will take up more space */
+    margin-right: 20px; /* Space between left and right */
+}
+
+.payment-right {
+    flex: 0.5; /* This will take less space */
+    background-color: #f8f8f8; /* Optional: background color for visibility */
+    padding: 20px;
+    border: 1px solid #ddd; /* Optional: border for visibility */
+    border-radius: 8px; /* Optional: rounded corners */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Optional: shadow for depth */
+}
+
+.payment-options {
+    margin: 20px 0;
+}
+
+.payment-option {
+    margin-bottom: 15px;
+    cursor: pointer;
+}
+
+.payment-option-header {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    background: #e7e7e7; /* Background for better visibility */
+    border-radius: 5px; /* Rounded corners */
+}
+
+.icon {
+    margin-right: 10px;
+}
+
+.card-details,
+.upi-options,
+.netbanking-options {
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px; /* Rounded corners */
+    margin-top: 10px;
+}
+
+.card-row {
+    display: flex;
+    gap: 10px;
+}
+
+.error {
+    color: red;
+    font-size: 12px;
+    margin-top: 5px;
+}
+
+button {
+    margin-top: 10px;
+    padding: 10px;
+    background-color: #007bff; /* Button color */
+    color: white;
+    border: none;
+    border-radius: 5px; /* Rounded corners */
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #0056b3; /* Darker button on hover */
+}
