@@ -45,15 +45,12 @@ const AdminPage = () => {
 
     // Define the UserDetailsSection component
     const UserDetailsSection = ({ userPolicies }) => {
-        // Ensure userPolicies is an array
-        const policiesArray = Array.isArray(userPolicies) ? userPolicies : [userPolicies];
-        
         return (
             <div>
                 <h2>User Policies</h2>
-                {policiesArray.length > 0 ? (
+                {userPolicies.length > 0 ? (
                     <ul>
-                        {policiesArray.map((policy, index) => (
+                        {userPolicies.map((policy, index) => (
                             <li key={index}>
                                 <strong>Policy ID:</strong> {policy?.policyId || 'N/A'} <br />
                                 <strong>Policy Name:</strong> {policy?.policyName || 'N/A'} <br />
@@ -81,7 +78,6 @@ const AdminPage = () => {
             </div>
         );
     };
-    
 
     // Add new policy
     const handleAddPolicy = async () => {
@@ -96,6 +92,8 @@ const AdminPage = () => {
                 const addedPolicy = await response.json();
                 setPolicies((prev) => [...prev, addedPolicy]);
                 resetForm();
+            } else {
+                console.error('Error adding policy:', response.statusText);
             }
         } catch (error) {
             console.error('Error adding policy:', error);
@@ -184,10 +182,7 @@ const AdminPage = () => {
                 <SidebarButton onClick={() => setActivePage('policy')} active={activePage === 'policy'}>
                     Policies
                 </SidebarButton>
-                <SidebarButton onClick={() => setActivePage('user')} active={activePage === 'user' && (
-    <UserDetailsSection userPolicies={userPolicies} />
-)}
->
+                <SidebarButton onClick={() => setActivePage('user')} active={activePage === 'user'}>
                     User Details
                 </SidebarButton>
             </Sidebar>
@@ -244,98 +239,52 @@ const AdminPage = () => {
                                     <InputField name="description" placeholder="Description" value={formData.description} onChange={handleInputChange} />
                                     <InputField name="price" placeholder="Price" value={formData.price} onChange={handleInputChange} />
                                     <InputField name="terms" placeholder="Terms" value={formData.terms} onChange={handleInputChange} />
-                                    <SubmitButton onClick={handleAddPolicy}>Add Policy</SubmitButton>
-                                    <CloseButton onClick={resetForm}>Close</CloseButton>
+                                    <ActionButton onClick={handleAddPolicy}>Add</ActionButton>
+                                    <ActionButton onClick={resetForm}>Cancel</ActionButton>
                                 </ModalContent>
                             </Modal>
                         )}
                     </>
                 )}
 
-                {activePage === 'user' && (
-                    <UserDetailsSection>
-                        <h2>User Policies</h2>
-                        {userPolicies.length > 0 ? (
-                            <ul>
-                                {userPolicies.map((policy) => (
-                                    <li key={policy._id}>{policy.Title} - {policy.Description}</li>
-                                ))}
-                            </ul>
-                        ) : (
-                            <p>No user policies available</p>
-                        )}
-                    </UserDetailsSection>
-                )}
+                {activePage === 'user' && <UserDetailsSection userPolicies={userPolicies} />}
             </Content>
         </Container>
     );
 };
 
-// Styled components
 const Container = styled.div`
     display: flex;
-    min-height: 100vh;
 `;
 
 const Sidebar = styled.div`
-    background-color: #333;
+    width: 200px;
+    background-color: #f0f0f0;
     padding: 20px;
-    width: 250px;
-    display: flex;
-    flex-direction: column;
 `;
 
 const SidebarButton = styled.button`
-    background-color: ${({ active }) => (active ? '#4caf50' : 'transparent')};
-    color: white;
+    width: 100%;
+    padding: 10px;
+    margin: 5px 0;
+    background-color: ${(props) => (props.active ? '#d0d0d0' : 'transparent')};
     border: none;
-    padding: 15px 20px;
-    margin-bottom: 10px;
-    border-radius: 5px;
     cursor: pointer;
-    text-align: left;
-    &:hover {
-        background-color: #4caf50;
-    }
 `;
 
 const Content = styled.div`
-    flex-grow: 1;
+    flex: 1;
     padding: 20px;
-    background-color: #f8f8f8;
 `;
 
 const ChartSection = styled.div`
     display: flex;
-    justify-content: space-between;
+    flex-direction: column;
+    align-items: center;
 `;
 
 const PolicyDetails = styled.div`
-    background-color: #fff;
-    padding: 20px;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    width: 300px;
-`;
-
-const ButtonWrapper = styled.div`
-    display: flex;
-    justify-content: flex-end;
-`;
-
-const ActionButton = styled.button`
-    background-color: #4caf50;
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 5px;
-    cursor: pointer;
-    margin-bottom: 20px;
-    display: flex;
-    align-items: center;
-    &:hover {
-        background-color: #45a049;
-    }
+    margin-top: 20px;
 `;
 
 const PolicyList = styled.div`
@@ -343,31 +292,43 @@ const PolicyList = styled.div`
 `;
 
 const PolicyItem = styled.div`
-    background-color: #fff;
-    padding: 15px;
-    border: 1px solid #ddd;
-    margin-bottom: 10px;
-    border-radius: 5px;
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    padding: 10px;
+    border: 1px solid #ccc;
+    margin: 5px 0;
     cursor: pointer;
 `;
 
-const PolicyTitle = styled.div``;
+const PolicyTitle = styled.div`
+    flex: 1;
+`;
 
-const ActionButtons = styled.div``;
+const ActionButtons = styled.div`
+    display: flex;
+    align-items: center;
+`;
 
 const DeleteButton = styled.button`
-    background-color: red;
-    color: white;
+    background: transparent;
     border: none;
-    padding: 8px 10px;
-    border-radius: 5px;
     cursor: pointer;
-    &:hover {
-        background-color: darkred;
-    }
+    color: red;
+`;
+
+const ActionButton = styled.button`
+    margin: 5px;
+`;
+
+const ButtonWrapper = styled.div`
+    display: flex;
+    justify-content: flex-end;
+`;
+
+const InputField = styled.input`
+    width: 100%;
+    padding: 10px;
+    margin: 5px 0;
 `;
 
 const Modal = styled.div`
@@ -376,51 +337,16 @@ const Modal = styled.div`
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
+    background: rgba(0, 0, 0, 0.5);
     display: flex;
     justify-content: center;
     align-items: center;
 `;
 
 const ModalContent = styled.div`
-    background-color: white;
+    background: white;
     padding: 20px;
     border-radius: 5px;
-    width: 500px;
-`;
-
-const InputField = styled.input`
-    display: block;
-    width: 100%;
-    padding: 10px;
-    margin-bottom: 15px;
-    border-radius: 5px;
-    border: 1px solid #ddd;
-`;
-
-const SubmitButton = styled.button`
-    background-color: #4caf50;
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 5px;
-    cursor: pointer;
-    margin-right: 10px;
-    &:hover {
-        background-color: #45a049;
-    }
-`;
-
-const CloseButton = styled.button`
-    background-color: red;
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 5px;
-    cursor: pointer;
-    &:hover {
-        background-color: darkred;
-    }
 `;
 
 export default AdminPage;
