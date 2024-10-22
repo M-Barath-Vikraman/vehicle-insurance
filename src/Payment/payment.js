@@ -55,6 +55,9 @@ const Payment = () => {
     const handlePayment = async () => {
         try {
             const premiumAmount = parseFloat(insurance?.Price.replace(/[^\d.-]/g, '')) || 5900;
+            console.log('Name:', name);
+            console.log('Phone Number:', phoneNumber);
+            console.log('Email:', email);
 
             // Prepare the policy data
             const policyData = {
@@ -62,7 +65,7 @@ const Payment = () => {
                 policyHolder: {
                     name: name,
                     email: email,
-                    phoneNumber: phoneNumber,
+                    contactNumber: phoneNumber,
                 },
                 vehicleDetails: {
                     vehicleType: brandName,
