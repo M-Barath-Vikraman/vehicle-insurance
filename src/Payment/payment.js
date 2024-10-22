@@ -6,7 +6,7 @@ import { SiPaytm } from 'react-icons/si';
 import { FaGooglePay } from 'react-icons/fa';
 import jsPDF from 'jspdf';
 import axios from 'axios';
-
+import './Payment.css'; // Import the CSS file
 
 const Payment = () => {
     const location = useLocation();
@@ -25,6 +25,10 @@ const Payment = () => {
     const [newUpiId, setNewUpiId] = useState('');
     const [netBankingOption, setNetBankingOption] = useState('');
     const [showBill, setShowBill] = useState(false); // State to show bill
+    const [cardNumber, setCardNumber] = useState('');
+    const [expiryDate, setExpiryDate] = useState('');
+    const [cvv, setCvv] = useState('');
+    const [errors, setErrors] = useState({}); // State for error messages
 
     const calculateEndDate = () => {
         const currentDate = new Date();
@@ -45,6 +49,11 @@ const Payment = () => {
         setUpiOption('');
         setNewUpiId('');
         setNetBankingOption('');
+        // Reset card fields
+        setCardNumber('');
+        setExpiryDate('');
+        setCvv('');
+        setErrors({});
     };
 
     const handleUpiSelection = (option) => {
@@ -52,7 +61,40 @@ const Payment = () => {
         setNewUpiId(''); // Reset UPI ID input when UPI option is selected
     };
 
+    const validateCardDetails = () => {
+        const currentYear = new Date().getFullYear() % 100; // Last two digits of current year
+        const currentMonth = new Date().getMonth() + 1; // Month is 0-indexed
+
+        let validationErrors = {};
+
+        // Validate card number
+        if (!/^\d{16}$/.test(cardNumber)) {
+            validationErrors.cardNumber = "Card number must be 16 digits.";
+        }
+
+        // Validate expiry date
+        const [expMonth, expYear] = expiryDate.split('/').map(Number);
+        if (
+            !expiryDate.match(/^(0[1-9]|1[0-2])\/\d{2}$/) || 
+            (expYear < currentYear || (expYear === currentYear && expMonth < currentMonth))
+        ) {
+            validationErrors.expiryDate = "Expiry date must be in MM/YY format and greater than the current date.";
+        }
+
+        // Validate CVV
+        if (!/^\d{3}$/.test(cvv)) {
+            validationErrors.cvv = "CVV must be 3 digits.";
+        }
+
+        setErrors(validationErrors);
+        return Object.keys(validationErrors).length === 0; // Return true if no errors
+    };
+
     const handlePayment = async () => {
+        if (!validateCardDetails()) {
+            return; // Exit if validation fails
+        }
+
         try {
             const premiumAmount = parseFloat(insurance?.Price.replace(/[^\d.-]/g, '')) || 5900;
             console.log('Name:', name);
@@ -109,276 +151,161 @@ const Payment = () => {
         doc.save('insurance_bill.pdf');
     };
 
+    // Calculate total price with tax
+    const premiumAmount = parseFloat(insurance?.Price.replace(/[^\d.-]/g, '')) || 5900;
+    const tax = premiumAmount * 0.18;
+    const totalPrice = premiumAmount + tax;
+
     return (
-        <PaymentContainer>
-            <PaymentLeft>
+        <div className="payment-container">
+            <div className="payment-left">
                 <h3>Payment for {insurance?.Title}</h3>
                 <p>Price: {insurance?.Price}</p>
 
                 <h3>Select payment method</h3>
-                <PaymentOptions>
+                <div className="payment-options">
                     {/* Credit/Debit/ATM Card Option */}
-                    <PaymentOption>
-                        <PaymentOptionHeader onClick={() => handlePaymentSelection('Card')}>
-                            <Icon><FaCreditCard /></Icon>
-                            <OptionInfo>
+                    <div className="payment-option">
+                        <div 
+                            className="payment-option-header" 
+                            onClick={() => handlePaymentSelection('Card')}
+                        >
+                            <div className="icon"><FaCreditCard /></div>
+                            <div className="option-info">
                                 <h4>Credit/Debit/ATM Card</h4>
-                            </OptionInfo>
-                        </PaymentOptionHeader>
+                            </div>
+                        </div>
                         {paymentMethod === 'Card' && (
-                            <CardDetails>
+                            <div className="card-details">
                                 <h4>Enter Card Details</h4>
-                                <input type="text" placeholder="Card Number" />
-                                <CardRow>
-                                    <input type="text" placeholder="Expiry (MM/YY)" />
-                                    <input type="text" placeholder="CVV" />
-                                </CardRow>
-                                <button onClick={handlePayment}>Pay ₹{insurance?.Price 
-                                ? (parseFloat(insurance.Price.replace(/[^\d.-]/g, '')) * 1.18).toFixed(2) 
-                                : '900.00'}</button>
-                            </CardDetails>
+                                <input 
+                                    type="text" 
+                                    placeholder="Card Number" 
+                                    value={cardNumber}
+                                    onChange={(e) => setCardNumber(e.target.value)} 
+                                />
+                                {errors.cardNumber && <div className="error">{errors.cardNumber}</div>}
+                                <div className="card-row">
+                                    <input 
+                                        type="text" 
+                                        placeholder="Expiry (MM/YY)" 
+                                        value={expiryDate}
+                                        onChange={(e) => setExpiryDate(e.target.value)} 
+                                    />
+                                    {errors.expiryDate && <div className="error">{errors.expiryDate}</div>}
+                                    <input 
+                                        type="text" 
+                                        placeholder="CVV" 
+                                        value={cvv}
+                                        onChange={(e) => setCvv(e.target.value)} 
+                                    />
+                                    {errors.cvv && <div className="error">{errors.cvv}</div>}
+                                </div>
+                                <button onClick={handlePayment}>Pay ₹{totalPrice.toFixed(2)}</button>
+                            </div>
                         )}
-                    </PaymentOption>
+                    </div>
 
                     {/* UPI Option */}
-                    <PaymentOption>
-                        <PaymentOptionHeader onClick={() => handlePaymentSelection('UPI')}>
-                            <Icon><FaGooglePay /></Icon>
-                            <OptionInfo>
+                    <div className="payment-option">
+                        <div 
+                            className="payment-option-header" 
+                            onClick={() => handlePaymentSelection('UPI')}
+                        >
+                            <div className="icon"><FaGooglePay /></div>
+                            <div className="option-info">
                                 <h4>UPI</h4>
-                                <p>Google Pay, Paytm, or Add UPI ID</p>
-                            </OptionInfo>
-                        </PaymentOptionHeader>
+                            </div>
+                        </div>
                         {paymentMethod === 'UPI' && (
-                            <UpiOptions>
-                                <h4>Select UPI Option</h4>
-                                <UpiOption>
+                            <div className="upi-options">
+                                <h4>Select UPI option</h4>
+                                <div className="upi-option">
                                     <label>
-                                        <input
-                                            type="radio"
-                                            name="upi"
-                                            value="GooglePay"
-                                            checked={upiOption === 'GooglePay'}
-                                            onChange={() => handleUpiSelection('GooglePay')}
+                                        <input 
+                                            type="radio" 
+                                            name="upi" 
+                                            checked={upiOption === 'ExistingUPI'}
+                                            onChange={() => handleUpiSelection('ExistingUPI')}
                                         />
-                                        Google Pay
+                                        Existing UPI ID
                                     </label>
-                                </UpiOption>
-                                <UpiOption>
-                                    <label>
-                                        <input
-                                            type="radio"
-                                            name="upi"
-                                            value="Paytm"
-                                            checked={upiOption === 'Paytm'}
-                                            onChange={() => handleUpiSelection('Paytm')}
-                                        />
-                                        Paytm
-                                    </label>
-                                </UpiOption>
-                                <UpiOption>
-                                    <label>
-                                        <input
-                                            type="radio"
-                                            name="upi"
-                                            value="AddUPI"
-                                            checked={upiOption === 'AddUPI'}
-                                            onChange={() => handleUpiSelection('AddUPI')}
-                                        />
-                                        Add New UPI ID
-                                    </label>
-                                </UpiOption>
-
-                                {(upiOption === 'GooglePay' || upiOption === 'Paytm' || upiOption === 'AddUPI') && (
-                                    <div>
+                                    {upiOption === 'ExistingUPI' && (
                                         <input
                                             type="text"
                                             placeholder="Enter UPI ID"
                                             value={newUpiId}
                                             onChange={(e) => setNewUpiId(e.target.value)}
                                         />
-                                        <button onClick={handlePayment}>Pay ₹{insurance?.Price 
-                                ? (parseFloat(insurance.Price.replace(/[^\d.-]/g, '')) * 1.18).toFixed(2) 
-                                : '900.00'}</button>
-                                    </div>
-                                )}
-                            </UpiOptions>
+                                    )}
+                                </div>
+                                <div className="upi-option">
+                                    <label>
+                                        <input 
+                                            type="radio" 
+                                            name="upi" 
+                                            checked={upiOption === 'NewUPI'}
+                                            onChange={() => handleUpiSelection('NewUPI')}
+                                        />
+                                        New UPI ID
+                                    </label>
+                                    {upiOption === 'NewUPI' && (
+                                        <input
+                                            type="text"
+                                            placeholder="Enter your new UPI ID"
+                                            value={newUpiId}
+                                            onChange={(e) => setNewUpiId(e.target.value)}
+                                        />
+                                    )}
+                                </div>
+                                <button onClick={handlePayment}>Pay ₹{totalPrice.toFixed(2)}</button>
+                            </div>
                         )}
-                    </PaymentOption>
-                </PaymentOptions>
-            </PaymentLeft>
+                    </div>
 
+                    {/* Net Banking Option */}
+                    <div className="payment-option">
+                        <div 
+                            className="payment-option-header" 
+                            onClick={() => handlePaymentSelection('NetBanking')}
+                        >
+                            <div className="icon"><SiPaytm /></div>
+                            <div className="option-info">
+                                <h4>Net Banking</h4>
+                            </div>
+                        </div>
+                        {paymentMethod === 'NetBanking' && (
+                            <div className="netbanking-options">
+                                <h4>Select your bank</h4>
+                                <select 
+                                    value={netBankingOption} 
+                                    onChange={(e) => setNetBankingOption(e.target.value)}
+                                >
+                                    <option value="">Select Bank</option>
+                                    <option value="HDFC">HDFC</option>
+                                    <option value="ICICI">ICICI</option>
+                                    <option value="SBI">SBI</option>
+                                </select>
+                                <button onClick={handlePayment}>Pay ₹{totalPrice.toFixed(2)}</button>
+                            </div>
+                        )}
+                    </div>
+                </div>
+                <button onClick={handleContinue}>Get Bill</button>
+            </div>
 
-            <PaymentRight>
-                <h3>Payment Summary</h3>
-                <Summary>
-                    <Item>
-                        <span>Insurance</span>
-                        <span>{insurance?.Price}</span>
-                    </Item>
-                    <Item>
-                        <span>Tax (18%)</span>
-                        <span>
-                            ₹{insurance?.Price 
-                                ? (parseFloat(insurance.Price.replace(/[^\d.-]/g, '')) * 0.18).toFixed(2) 
-                                : '900.00'}
-                        </span>
-                    </Item>
-                    <Total>
-                        <span>Total</span>
-                        <span>
-                            ₹{insurance?.Price 
-                                ? (parseFloat(insurance.Price.replace(/[^\d.-]/g, '')) * 1.18).toFixed(2) 
-                                : '900.00'}
-                        </span>
-                    </Total>
-                </Summary>
-                <ContinueButton onClick={handleContinue}>Continue</ContinueButton>
-
-                {showBill && (
-                    <BillContainer>
-                        <h3>Bill</h3>
-                        <p>Insurance Type: {insurance?.Title}</p>
-                        <p>Price: {insurance?.Price}</p>
-                        <p>Tax: ₹{insurance?.Price 
-                            ? (parseFloat(insurance.Price.replace(/[^\d.-]/g, '')) * 0.18).toFixed(2) 
-                            : '900.00'}
-                        </p>
-                        <p>Total: ₹{insurance?.Price 
-                            ? (parseFloat(insurance.Price.replace(/[^\d.-]/g, '')) * 1.18).toFixed(2) 
-                            : '900.00'}
-                        </p>
-                        <DownloadButton onClick={downloadBill}>Download Bill</DownloadButton>
-                    </BillContainer>
-                )}
-            </PaymentRight>
-        </PaymentContainer>
+            {showBill && (
+                <div className="payment-right">
+                    <h3>Bill Summary</h3>
+                    <p>Insurance: {insurance?.Title}</p>
+                    <p>Price: {insurance?.Price}</p>
+                    <p>Tax: ₹{tax.toFixed(2)}</p>
+                    <p>Total Amount: ₹{totalPrice.toFixed(2)}</p>
+                    <button onClick={downloadBill}>Download Bill</button>
+                </div>
+            )}
+        </div>
     );
 };
-// Styled Components
-const PaymentContainer = styled.div`
-    display: flex;
-    justify-content: space-between;
-    padding: 20px;
-`;
-
-const PaymentLeft = styled.div`
-    flex: 2;
-    padding-right: 20px;
-`;
-
-const PaymentRight = styled.div`
-    flex: 1;
-    background-color: #f9f9f9;
-    padding: 20px;
-    border-radius: 5px;
-`;
-
-const PaymentOptions = styled.div`
-    margin-top: 20px;
-`;
-
-const PaymentOption = styled.div`
-    margin-bottom: 20px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    padding: 10px;
-`;
-
-const PaymentOptionHeader = styled.div`
-    display: flex;
-    align-items: center;
-    cursor: pointer;
-`;
-
-const Icon = styled.div`
-    margin-right: 10px;
-    font-size: 20px;
-`;
-
-const OptionInfo = styled.div``;
-
-const CardDetails = styled.div``;
-
-const CardRow = styled.div`
-    display: flex;
-    justify-content: space-between;
-`;
-
-const NetBankingDetails = styled.div``;
-
-const UpiOptions = styled.div``;
-
-const UpiOption = styled.div`
-    margin: 5px 0;
-`;
-
-const BankButton = styled.button`
-    margin: 5px 0;
-    padding: 10px;
-    background-color: #4caf50;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-
-    &:hover {
-        background-color: #45a049;
-    }
-`;
-
-const Summary = styled.div`
-    margin-top: 20px;
-`;
-
-const Item = styled.div`
-    display: flex;
-    justify-content: space-between;
-    padding: 5px 0;
-`;
-
-const Total = styled.div`
-    display: flex;
-    justify-content: space-between;
-    font-weight: bold;
-    padding: 10px 0;
-`;
-
-const ContinueButton = styled.button`
-    margin-top: 10px;
-    padding: 10px;
-    background-color: #2196f3;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-
-    &:hover {
-        background-color: #1976d2;
-    }
-`;
-
-const BillContainer = styled.div`
-    margin-top: 20px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    padding: 10px;
-`;
-
-const DownloadButton = styled.button`
-    margin-top: 10px;
-    padding: 10px;
-    background-color: #f44336;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-
-    &:hover {
-        background-color: #e53935;
-    }
-`;
-
 
 export default Payment;
-
