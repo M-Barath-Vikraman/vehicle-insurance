@@ -1,28 +1,28 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
-import axios from 'axios';  // Use axios to make HTTP requests
+import axios from 'axios';
 import { useLocation } from 'react-router-dom';
 
 const PriceList = () => {
     const location = useLocation();
-    const { carNumber, carModel, brandName } = location.state || {}; 
-    const [policies, setPolicies] = useState([]); // To store policies fetched from the server
-    const [selectedInsurance, setSelectedInsurance] = useState(null); // To store the selected insurance for modal
-    const [showModal, setShowModal] = useState(false); // To control modal visibility
-    const [showCarDetailsModal, setShowCarDetailsModal] = useState(false); // New state for car details modal
+    const { carNumber, carModel, brandName } = location.state || {};
+    const [policies, setPolicies] = useState([]);
+    const [selectedInsurance, setSelectedInsurance] = useState(null);
+    const [showModal, setShowModal] = useState(false);
+    const [showCarDetailsModal, setShowCarDetailsModal] = useState(false);
     const [carNum, setCarNumber] = useState('');
     const [carMod, setCarModel] = useState('');
     const [brand, setBrandName] = useState('');
+    const [errors, setErrors] = useState({});
     const navigate = useNavigate();
-    const { isLoggin,name,email,phoneNumber } = location.state || {}; 
+    const { isLoggin, name, email, phoneNumber } = location.state || {};
 
-    // Fetch policies from the server when the component loads
     useEffect(() => {
         const fetchPolicies = async () => {
             try {
                 const response = await axios.get('http://localhost:5000/api/policies');
-                setPolicies(response.data); // Store fetched policies in the state
+                setPolicies(response.data);
             } catch (error) {
                 console.error('Error fetching policies:', error);
             }
@@ -31,52 +31,70 @@ const PriceList = () => {
         fetchPolicies();
     }, []);
 
+    const validateForm = () => {
+        const newErrors = {};
+        if (!carNum) newErrors.carNum = 'Car Number is required';
+        if (!carMod) newErrors.carMod = 'Car Model is required';
+        if (!brand) newErrors.brand = 'Brand Name is required';
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+    };
+
     const handleInsureClick = (insurance) => {
         setSelectedInsurance(insurance);
-        setShowModal(true); // Show modal when user clicks "Insure"
+        setShowModal(true);
     };
 
     const handleCarDetailsSubmit = () => {
-        if (isLoggin) {
-            // Navigate to payment page with necessary information if logged in
-            navigate('/payment', { 
-                state: { 
-                    insurance: selectedInsurance,
-                    name,
-                    email,
-                    phoneNumber,
-                    carNumber: carNum,
-                    carModel: carMod,
-                    brandName: brand
-                } 
-            });
+        if (validateForm()) {
+            if (isLoggin) {
+                navigate('/payment', {
+                    state: {
+                        insurance: selectedInsurance,
+                        name,
+                        email,
+                        phoneNumber,
+                        carNumber: carNum,
+                        carModel: carMod,
+                        brandName: brand,
+                    },
+                });
+            }
+            setShowCarDetailsModal(false);
         }
-        setShowCarDetailsModal(false); // Close car details modal
     };
 
     const handleAgree = () => {
         setShowModal(false);
-        console.log(selectedInsurance);
-        if (carNumber && carModel && brandName) {
-            // If no car details are provided, navigate to login page
-            navigate('/login', { 
-                state: { 
+        if (!carNumber || !carModel || !brandName) {
+            setShowCarDetailsModal(true);
+        } else {
+            navigate('/login', {
+                state: {
                     insurance: selectedInsurance,
                     carNumber: carNumber,
                     carModel: carModel,
-                    brandName: brandName
-                } 
+                    brandName: brandName,
+                },
             });
-        } else {
-            setShowCarDetailsModal(true);
         }
     };
-         // Navigate to login page with selected policy
-    
 
     const handleClose = () => {
         setShowModal(false);
+        setShowCarDetailsModal(false);
     };
+
+    // Define the terms and conditions
+    const termsAndConditions = `
+        1. The insurance policies offered are subject to approval by the insurer.
+        2. All claims are subject to the terms and conditions of the policy.
+        3. The insured must provide true and accurate information at the time of purchase.
+        4. Failure to provide accurate information may result in denial of claims.
+        5. The insurer reserves the right to amend the terms of the policy at any time.
+        6. Cancellation of the policy can be done within 15 days of purchase with a full refund.
+        7. Policyholders must notify the insurer of any changes in circumstances that may affect the policy.
+    `;
 
     return (
         <Container>
@@ -98,7 +116,7 @@ const PriceList = () => {
                 <Modal>
                     <ModalContent>
                         <ModalTitle>Terms and Conditions</ModalTitle>
-                        <ModalDescription>{selectedInsurance?.Terms}</ModalDescription>
+                        <ModalDescription>{termsAndConditions}</ModalDescription>
                         <ModalActions>
                             <AgreeButton onClick={handleAgree}>Agree</AgreeButton>
                             <CloseButton onClick={handleClose}>Close</CloseButton>
@@ -107,30 +125,42 @@ const PriceList = () => {
                 </Modal>
             )}
 
-            {/* Car Details Modal */}
             {showCarDetailsModal && (
                 <Modal>
                     <ModalContent>
                         <ModalTitle>Enter Car Details</ModalTitle>
                         <ModalDescription>
-                            <input 
-                                type="text" 
-                                placeholder="Car Number" 
-                                value={carNumber} 
-                                onChange={(e) => setCarNumber(e.target.value)} 
-                            />
-                            <input 
-                                type="text" 
-                                placeholder="Car Model" 
-                                value={carModel} 
-                                onChange={(e) => setCarModel(e.target.value)} 
-                            />
-                            <input 
-                                type="text" 
-                                placeholder="Brand Name" 
-                                value={brandName} 
-                                onChange={(e) => setBrandName(e.target.value)} 
-                            />
+                            <Form>
+                                <Label>Car Number</Label>
+                                <Input 
+                                    type="text" 
+                                    placeholder="Car Number" 
+                                    value={carNum} 
+                                    onChange={(e) => setCarNumber(e.target.value)} 
+                                    required 
+                                />
+                                {errors.carNum && <Error>{errors.carNum}</Error>}
+
+                                <Label>Car Model</Label>
+                                <Input 
+                                    type="text" 
+                                    placeholder="Car Model" 
+                                    value={carMod} 
+                                    onChange={(e) => setCarModel(e.target.value)} 
+                                    required 
+                                />
+                                {errors.carMod && <Error>{errors.carMod}</Error>}
+
+                                <Label>Brand Name</Label>
+                                <Input 
+                                    type="text" 
+                                    placeholder="Brand Name" 
+                                    value={brand} 
+                                    onChange={(e) => setBrandName(e.target.value)} 
+                                    required 
+                                />
+                                {errors.brand && <Error>{errors.brand}</Error>}
+                            </Form>
                         </ModalDescription>
                         <ModalActions>
                             <AgreeButton onClick={handleCarDetailsSubmit}>Submit</AgreeButton>
@@ -139,7 +169,6 @@ const PriceList = () => {
                     </ModalContent>
                 </Modal>
             )}
-
         </Container>
     );
 };
@@ -251,9 +280,10 @@ const ModalTitle = styled.h2`
     margin-bottom: 15px;
 `;
 
-const ModalDescription = styled.p`
+const ModalDescription = styled.div`
     font-size: 14px;
     margin-bottom: 20px;
+    white-space: pre-line; /* Preserve line breaks in the terms */
 `;
 
 const ModalActions = styled.div`
@@ -277,6 +307,31 @@ const CloseButton = styled.button`
     background-color: #dc3545;
     color: white;
     cursor: pointer;
+`;
+
+const Form = styled.div`
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+`;
+
+const Label = styled.label`
+    font-size: 14px;
+    font-weight: bold;
+    margin-bottom: 5px;
+`;
+
+const Input = styled.input`
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    font-size: 14px;
+`;
+
+const Error = styled.span`
+    color: red;
+    font-size: 12px;
+    margin-top: -10px;
 `;
 
 export default PriceList;

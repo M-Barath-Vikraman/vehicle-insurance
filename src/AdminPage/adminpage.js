@@ -11,7 +11,6 @@ const AdminPage = () => {
     const [isModalOpen, setModalOpen] = useState(false);
     const [selectedPolicy, setSelectedPolicy] = useState(null);
     const [activePage, setActivePage] = useState('user');
-    const [clickedPolicy, setClickedPolicy] = useState(null);
 
     const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#AF19FF'];
 
@@ -145,12 +144,9 @@ const AdminPage = () => {
     };
 
     useEffect(() => {
-        if (activePage === 'home') {
-            fetchPolicies();
-        } else if (activePage === 'user') {
-            fetchUserPolicies();
-        }
-    }, [activePage]);
+        fetchPolicies();
+        fetchUserPolicies();
+    }, []);
 
     const countPolicies = () => {
         const policyCounts = userPolicies.reduce((acc, policy) => {
@@ -288,11 +284,11 @@ const AdminPage = () => {
     );
 };
 
-// Styled components CSS
+// Styled Components
 
 const Container = styled.div`
     display: flex;
-    height: 100vh;
+    height: 100vh; /* Full viewport height */
     width: 100%;
 `;
 
@@ -302,24 +298,46 @@ const Sidebar = styled.div`
     display: flex;
     flex-direction: column;
     padding: 20px;
-`;
-
-const SidebarButton = styled.button`
-    margin-bottom: 10px;
-    padding: 10px;
-    background-color: ${({ active }) => (active ? '#16a085' : '#34495e')};
-    color: #fff;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    &:hover {
-        background-color: #16a085;
-    }
+    height: 100%; /* Full height of the parent container */
 `;
 
 const Content = styled.div`
     flex: 1;
     padding: 20px;
+    overflow-y: auto; /* Allow scrolling if content overflows */
+`;
+
+const SidebarButton = styled.button`
+    background: none;
+    color: ${(props) => (props.active ? '#3498db' : '#ecf0f1')};
+    border: none;
+    padding: 10px;
+    cursor: pointer;
+    text-align: left;
+    &:hover {
+        color: #3498db;
+    }
+`;
+
+const UserPoliciesContainer = styled.div`
+    margin-top: 20px;
+`;
+
+const PoliciesGrid = styled.div`
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 20px;
+`;
+
+const PolicyCard = styled.div`
+    border: 1px solid #bdc3c7;
+    border-radius: 5px;
+    padding: 15px;
+    background-color: #fff;
+`;
+
+const PolicyDetail = styled.div`
+    margin-bottom: 10px;
 `;
 
 const ButtonWrapper = styled.div`
@@ -329,14 +347,22 @@ const ButtonWrapper = styled.div`
 `;
 
 const ActionButton = styled.button`
-    background-color: #16a085;
-    color: #fff;
-    padding: 10px;
+    background-color: #3498db;
+    color: white;
     border: none;
     border-radius: 5px;
+    padding: 10px 15px;
     cursor: pointer;
+    display: flex;
+    align-items: center;
     &:hover {
-        background-color: #1abc9c;
+        background-color: #2980b9;
+    }
+    &.add-policy {
+        background-color: #27ae60;
+        &:hover {
+            background-color: #219653;
+        }
     }
 `;
 
@@ -346,29 +372,28 @@ const PolicyList = styled.ul`
 `;
 
 const PolicyItem = styled.li`
-    display: flex;
-    justify-content: space-between;
-    padding: 10px;
     background-color: #ecf0f1;
-    margin-bottom: 10px;
+    padding: 15px;
+    margin: 10px 0;
     border-radius: 5px;
     cursor: pointer;
+    display: flex;
+    justify-content: space-between;
 `;
 
-const PolicyTitle = styled.div`
+const PolicyTitle = styled.span`
     font-weight: bold;
 `;
 
 const ActionButtons = styled.div`
     display: flex;
+    align-items: center;
 `;
 
 const DeleteButton = styled.button`
-    background-color: #e74c3c;
-    color: #fff;
-    padding: 5px;
+    background: none;
     border: none;
-    border-radius: 5px;
+    color: #e74c3c;
     cursor: pointer;
 `;
 
@@ -378,61 +403,25 @@ const ModalOverlay = styled.div`
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: rgba(0, 0, 0, 0.5);
+    background: rgba(0, 0, 0, 0.5);
     display: flex;
     justify-content: center;
     align-items: center;
 `;
 
 const ModalContent = styled.div`
-    background-color: #fff;
+    background: white;
     padding: 20px;
-    border-radius: 5px;
+    border-radius: 8px;
+    width: 400px;
 `;
 
 const InputField = styled.input`
-    display: block;
     width: 100%;
     padding: 10px;
-    margin-bottom: 10px;
-    border: 1px solid #ccc;
+    margin: 10px 0;
+    border: 1px solid #bdc3c7;
     border-radius: 5px;
-`;
-
-const UserPoliciesContainer = styled.div`
-    padding: 20px;
-    background-color: #f4f4f4;
-    border-radius: 10px;
-    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
-`;
-
-const PoliciesGrid = styled.div`
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 20px;
-`;
-
-const PolicyCard = styled.div`
-    background-color: #ffffff;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    padding: 20px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    transition: box-shadow 0.3s ease;
-
-    &:hover {
-        box-shadow: 0 8px 12px rgba(0, 0, 0, 0.2);
-    }
-`;
-
-const PolicyDetail = styled.div`
-    font-size: 14px;
-    margin-bottom: 10px;
-
-    & strong {
-        color: #333;
-        font-weight: 600;
-    }
 `;
 
 export default AdminPage;
