@@ -29,9 +29,17 @@ const Login = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError(''); // Clear any previous errors
-    
+
+        // Check if the email is of the type '@inxd.com'
+        if (formData.email.endsWith('@inxd.com')) {
+            // Redirect to the admin page if the email matches the domain
+            navigate('/adminpage');
+            return; // Exit function to prevent further actions
+        }
+
+        // Normal login flow if the email domain doesn't match '@inxd.com'
         try {
-            // Send a POST request to login API
+            // Send a POST request to login API for regular login
             const response = await fetch('http://localhost:5000/api/login', {
                 method: 'POST',
                 headers: {
@@ -39,19 +47,23 @@ const Login = () => {
                 },
                 body: JSON.stringify(formData),
             });
-    
+
             const data = await response.json();
-    
+
             if (response.ok) {
                 const user = data.user; // Capture the full user object
-    
+
                 if (selectedInsurance) {
                     // If an insurance policy was selected, navigate to the payment page with insurance and user details
-                    navigate('/payment', { state: { insurance: selectedInsurance, 
-                        name: user.name,
-                        email: user.email,
-                        phoneNumber: user.phoneNumber
-                    ,carNumber,carModel,brandName  } });
+                    navigate('/payment', {
+                        state: {
+                            insurance: selectedInsurance,
+                            name: user.name,
+                            email: user.email,
+                            phoneNumber: user.phoneNumber,
+                            carNumber, carModel, brandName
+                        }
+                    });
                 } else {
                     // If no insurance is selected, redirect to the dashboard with user details
                     navigate('/dashboard', { state: { user } });
@@ -64,8 +76,7 @@ const Login = () => {
             setError('An error occurred. Please try again later.');
         }
     };
-    
-    
+
     // Navigate to the signup page when clicking the "Sign Up" button
     const handleSignUpClick = () => {
         navigate('/signup');
