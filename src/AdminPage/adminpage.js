@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import { FaTrash, FaPlus } from 'react-icons/fa';
+import Modal from 'react-modal';
 import { PieChart, Pie, Tooltip, Cell } from 'recharts';
 
 const AdminPage = () => {
@@ -9,7 +10,7 @@ const AdminPage = () => {
     const [formData, setFormData] = useState({ title: '', description: '', price: '', terms: '' });
     const [isModalOpen, setModalOpen] = useState(false);
     const [selectedPolicy, setSelectedPolicy] = useState(null);
-    const [activePage, setActivePage] = useState('home');
+    const [activePage, setActivePage] = useState('user');
     const [clickedPolicy, setClickedPolicy] = useState(null);
     
     const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#AF19FF'];
@@ -54,20 +55,12 @@ const AdminPage = () => {
                             <li key={index}>
                                 <strong>Policy ID:</strong> {policy?.policyId || 'N/A'} <br />
                                 <strong>Policy Name:</strong> {policy?.policyName || 'N/A'} <br />
-                                
-                                {/* Policy Holder Details */}
                                 <strong>Policy Holder:</strong> {policy?.policyHolder?.name || 'N/A'} <br />
                                 <strong>Email:</strong> {policy?.policyHolder?.email || 'N/A'} <br />
                                 <strong>Contact Number:</strong> {policy?.policyHolder?.contactNumber || 'N/A'} <br />
-                                
-                                {/* Vehicle Details */}
                                 <strong>Vehicle Type:</strong> {policy?.vehicleDetails?.vehicleType || 'N/A'} <br />
                                 <strong>Vehicle Number:</strong> {policy?.vehicleDetails?.vehicleNumber || 'N/A'} <br />
                                 <strong>Model:</strong> {policy?.vehicleDetails?.model || 'N/A'} <br />
-                                <strong>Coverage Amount:</strong> {policy?.vehicleDetails?.coverageAmount || 'N/A'} <br />
-                                <strong>Premium Amount:</strong> {policy?.vehicleDetails?.premiumAmount || 'N/A'} <br />
-                                <strong>Start Date:</strong> {policy?.vehicleDetails?.startDate ? new Date(policy.vehicleDetails.startDate).toLocaleDateString() : 'N/A'} <br />
-                                <strong>End Date:</strong> {policy?.vehicleDetails?.endDate ? new Date(policy.vehicleDetails.endDate).toLocaleDateString() : 'N/A'} <br />
                                 <strong>Policy Status:</strong> {policy?.policyStatus || 'N/A'}
                             </li>
                         ))}
@@ -80,42 +73,61 @@ const AdminPage = () => {
     };
 
     // Add new policy
+    // Add new policy
     const handleAddPolicy = async () => {
         const newPolicy = { ...formData };
+
         try {
             const response = await fetch('http://localhost:5000/api/policies', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(newPolicy),
             });
+
             if (response.ok) {
                 const addedPolicy = await response.json();
+                // Add the new policy to the list
                 setPolicies((prev) => [...prev, addedPolicy]);
+                // Reset the form after successful addition
                 resetForm();
             } else {
-                console.error('Error adding policy:', response.statusText);
+                const errorMessage = await response.text(); // Get error message from response
+                console.error('Error adding policy:', errorMessage);
+                alert(`Error adding policy: ${errorMessage}`);
             }
         } catch (error) {
             console.error('Error adding policy:', error);
+            alert(`Error adding policy: ${error.message}`);
         }
     };
 
+
     // Delete selected policies
+    // Delete selected policy
     const handleDeletePolicy = async (id) => {
         const confirmed = window.confirm('Are you sure you want to delete this policy?');
         if (!confirmed) return;
 
         try {
-            const response = await fetch(`http://localhost:5000/api/policies/${id}`, { method: 'DELETE' });
+            const response = await fetch(`http://localhost:5000/api/policies/${id}`, {
+                method: 'DELETE',
+            });
+
             if (response.ok) {
+                // Remove the deleted policy from the list
                 setPolicies((prev) => prev.filter((policy) => policy._id !== id));
+                alert('Policy deleted successfully');
             } else {
-                console.error('Error deleting policy:', response.statusText);
+                const errorMessage = await response.text();
+                console.error('Error deleting policy:', errorMessage);
+                alert(`Error deleting policy: ${errorMessage}`);
             }
         } catch (error) {
             console.error('Error deleting policy:', error);
+            alert(`Error deleting policy: ${error.message}`);
         }
     };
+
 
     // Reset form data and close modal
     const resetForm = () => {
@@ -126,8 +138,7 @@ const AdminPage = () => {
 
     // Handle pie chart click to show details of the clicked policy
     const handlePieClick = (policyName) => {
-        const policy = policies.find((p) => p.Title === policyName);
-        setClickedPolicy(policyName);
+        const policy = userPolicies.find((p) => p.policyName === policyName);
         setSelectedPolicy(policy);
     };
 
@@ -141,16 +152,29 @@ const AdminPage = () => {
     }, [activePage]);
 
     // Render PieChart (Doughnut chart now) when on the home page
+    const countPolicies = () => {
+        const policyCounts = userPolicies.reduce((acc, policy) => {
+            acc[policy.policyName] = (acc[policy.policyName] || 0) + 1;
+            return acc;
+        }, {});
+        return policyCounts;
+    };
+
+    // Render PieChart with the count of user policies
     const renderPieChart = () => {
-        if (!policies || policies.length === 0) {
-            return <p>No policies available</p>;
+        if (!userPolicies || userPolicies.length === 0) {
+            return <p>No user policies available for chart</p>;
         }
 
-        const data = policies.map((policy, index) => ({
-            name: policy.Title,
-            value: 100 / policies.length,
-            color: COLORS[index % COLORS.length],
-        }));
+        const policyCounts = countPolicies();
+        const data = Object.keys(policyCounts).map((policyName, index) => {
+            const policy = policies.find(p => p._id === policyName);
+            return {
+                name: policy?.Title || `${policyName}`, // Use policy name if available
+                value: policyCounts[policyName], // Number of users with this policy
+                color: COLORS[index % COLORS.length], // Cycle through colors
+            };
+        });
 
         return (
             <PieChart width={400} height={400}>
@@ -162,7 +186,6 @@ const AdminPage = () => {
                     outerRadius={150}
                     innerRadius={70}
                     fill="#8884d8"
-                    onClick={(data) => handlePieClick(data.name)}
                 >
                     {data.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={entry.color} />
@@ -172,18 +195,23 @@ const AdminPage = () => {
             </PieChart>
         );
     };
-
+    const ChartSection = styled.div`
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 400px;
+    `;
     return (
         <Container>
             <Sidebar>
+                <SidebarButton onClick={() => setActivePage('user')} active={activePage === 'user'}>
+                    User Details
+                </SidebarButton>
                 <SidebarButton onClick={() => setActivePage('home')} active={activePage === 'home'}>
-                    Home
+                    User's Choices
                 </SidebarButton>
                 <SidebarButton onClick={() => setActivePage('policy')} active={activePage === 'policy'}>
                     Policies
-                </SidebarButton>
-                <SidebarButton onClick={() => setActivePage('user')} active={activePage === 'user'}>
-                    User Details
                 </SidebarButton>
             </Sidebar>
 
@@ -191,14 +219,6 @@ const AdminPage = () => {
                 {activePage === 'home' && (
                     <ChartSection>
                         {renderPieChart()}
-                        {selectedPolicy && (
-                            <PolicyDetails>
-                                <h3>{selectedPolicy.Title}</h3>
-                                <p><strong>Description:</strong> {selectedPolicy.Description}</p>
-                                <p><strong>Price:</strong> {selectedPolicy.Price}</p>
-                                <p><strong>Terms:</strong> {selectedPolicy.Terms}</p>
-                            </PolicyDetails>
-                        )}
                     </ChartSection>
                 )}
 
@@ -232,17 +252,37 @@ const AdminPage = () => {
                         </PolicyList>
 
                         {isModalOpen && (
-                            <Modal>
+                            <ModalOverlay>
                                 <ModalContent>
                                     <h2>Add Policy</h2>
-                                    <InputField name="title" placeholder="Title" value={formData.title} onChange={handleInputChange} />
-                                    <InputField name="description" placeholder="Description" value={formData.description} onChange={handleInputChange} />
-                                    <InputField name="price" placeholder="Price" value={formData.price} onChange={handleInputChange} />
-                                    <InputField name="terms" placeholder="Terms" value={formData.terms} onChange={handleInputChange} />
+                                    <InputField
+                                        name="title"
+                                        placeholder="Title"
+                                        value={formData.title}
+                                        onChange={handleInputChange}
+                                    />
+                                    <InputField
+                                        name="description"
+                                        placeholder="Description"
+                                        value={formData.description}
+                                        onChange={handleInputChange}
+                                    />
+                                    <InputField
+                                        name="price"
+                                        placeholder="Price"
+                                        value={formData.price}
+                                        onChange={handleInputChange}
+                                    />
+                                    <InputField
+                                        name="terms"
+                                        placeholder="Terms"
+                                        value={formData.terms}
+                                        onChange={handleInputChange}
+                                    />
                                     <ActionButton onClick={handleAddPolicy}>Add</ActionButton>
                                     <ActionButton onClick={resetForm}>Cancel</ActionButton>
                                 </ModalContent>
-                            </Modal>
+                            </ModalOverlay>
                         )}
                     </>
                 )}
@@ -253,8 +293,10 @@ const AdminPage = () => {
     );
 };
 
+// Styled components for AdminPage
 const Container = styled.div`
     display: flex;
+    height: 100vh;
 `;
 
 const Sidebar = styled.div`
@@ -264,12 +306,18 @@ const Sidebar = styled.div`
 `;
 
 const SidebarButton = styled.button`
+    display: block;
     width: 100%;
     padding: 10px;
-    margin: 5px 0;
-    background-color: ${(props) => (props.active ? '#d0d0d0' : 'transparent')};
+    background-color: ${(props) => (props.active ? '#0088FE' : 'transparent')};
+    color: ${(props) => (props.active ? '#fff' : '#000')};
     border: none;
+    margin-bottom: 10px;
     cursor: pointer;
+    &:hover {
+        background-color: #0088FE;
+        color: white;
+    }
 `;
 
 const Content = styled.div`
@@ -277,26 +325,45 @@ const Content = styled.div`
     padding: 20px;
 `;
 
-const ChartSection = styled.div`
+const ButtonWrapper = styled.div`
     display: flex;
-    flex-direction: column;
-    align-items: center;
+    justify-content: flex-end;
+    margin-bottom: 10px;
 `;
 
-const PolicyDetails = styled.div`
-    margin-top: 20px;
+const ActionButton = styled.button`
+    background-color: #0088fe;
+    border: none;
+    color: white;
+    padding: 10px;
+    cursor: pointer;
+    border-radius: 4px;
+    &:hover {
+        background-color: #005f9e;
+    }
+`;
+
+const DeleteButton = styled.button`
+    background-color: red;
+    color: white;
+    border: none;
+    cursor: pointer;
+    padding: 5px;
+    border-radius: 4px;
+    margin-left: 10px;
 `;
 
 const PolicyList = styled.div`
-    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
 `;
 
 const PolicyItem = styled.div`
-    display: flex;
-    justify-content: space-between;
     padding: 10px;
     border: 1px solid #ccc;
-    margin: 5px 0;
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
     cursor: pointer;
 `;
 
@@ -306,47 +373,33 @@ const PolicyTitle = styled.div`
 
 const ActionButtons = styled.div`
     display: flex;
-    align-items: center;
-`;
-
-const DeleteButton = styled.button`
-    background: transparent;
-    border: none;
-    cursor: pointer;
-    color: red;
-`;
-
-const ActionButton = styled.button`
-    margin: 5px;
-`;
-
-const ButtonWrapper = styled.div`
-    display: flex;
     justify-content: flex-end;
 `;
 
-const InputField = styled.input`
-    width: 100%;
-    padding: 10px;
-    margin: 5px 0;
-`;
-
-const Modal = styled.div`
+const ModalOverlay = styled.div`
     position: fixed;
     top: 0;
     left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.5);
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
     display: flex;
     justify-content: center;
     align-items: center;
 `;
 
 const ModalContent = styled.div`
-    background: white;
+    background-color: white;
     padding: 20px;
-    border-radius: 5px;
+    border-radius: 4px;
+`;
+
+const InputField = styled.input`
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
 `;
 
 export default AdminPage;

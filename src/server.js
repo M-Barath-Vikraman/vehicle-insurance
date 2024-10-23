@@ -107,6 +107,50 @@ app.get('/api/user-policies', async (req, res) => {
     }
 });
 
+// Add the following routes in your server.js file
+app.delete('/api/policies/:id', async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        // Check if `id` is a valid ObjectId
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            return res.status(400).json({ message: 'Invalid policy ID' });
+        }
+
+        // Convert the id to an ObjectId and delete the policy
+        const deletedPolicy = await Policy.findByIdAndDelete(new mongoose.Types.ObjectId(id));
+
+        if (!deletedPolicy) {
+            return res.status(404).json({ message: 'Policy not found' });
+        }
+
+        res.status(200).json({ message: 'Policy deleted successfully', policy: deletedPolicy });
+    } catch (err) {
+        console.error('Error deleting policy:', err);
+        res.status(500).json({ message: 'Server error', error: err.message });
+    }
+});
+
+// API endpoint to create a new policy
+app.post('/api/policies', async (req, res) => {
+    const { title, description, price, terms } = req.body;
+
+    try {
+        const newPolicy = new Policy({
+            Title: title,
+            Description: description,
+            Price: price,
+            Terms: terms,
+        });
+
+        await newPolicy.save();
+        res.status(201).json({ message: 'Policy created successfully', policy: newPolicy });
+    } catch (err) {
+        console.error('Error creating policy:', err);
+        res.status(500).json({ message: 'Server error', error: err.message });
+    }
+});
+
 app.get('/api/user-policies/:email', async (req, res) => {
     const { email } = req.params;
 
