@@ -2,10 +2,8 @@ const bcrypt = require('bcrypt');
 const express = require('express');
 const mongoose = require('mongoose'); // tp connect to MongoDB
 const cors = require('cors');//for frontend-backend communication
-
 const app = express();
 const port = 5000;
-
 // Middleware
 app.use(cors());//
 app.use(express.json()); // convert jason string to javascript object
@@ -198,7 +196,6 @@ app.get('/api/user-policies/:email', async (req, res) => {
     }
 });
 
-
 // Route to check and update policy status based on endDate
 app.put('/update-policy-status', async (req, res) => {
     try {
@@ -362,9 +359,6 @@ app.post('/api/store-policy', async (req, res) => {
         res.status(500).json({ message: 'Server error', error: err });
     }
 });
-
-
-
 
 app.listen(port, () => {
     console.log(`Server running on http://localhost:${port}`);
