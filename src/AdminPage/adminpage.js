@@ -6,16 +6,14 @@ import { PieChart, Pie, Tooltip, Cell } from 'recharts';
 
 const AdminPage = () => {
     const [policies, setPolicies] = useState([]);
-    const [userPolicies, setUserPolicies] = useState([]); // State to store user policies
+    const [userPolicies, setUserPolicies] = useState([]);
     const [formData, setFormData] = useState({ title: '', description: '', price: '', terms: '' });
     const [isModalOpen, setModalOpen] = useState(false);
     const [selectedPolicy, setSelectedPolicy] = useState(null);
     const [activePage, setActivePage] = useState('user');
-    const [clickedPolicy, setClickedPolicy] = useState(null);
-    
+
     const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#AF19FF'];
 
-    // Fetch policies from the server
     const fetchPolicies = async () => {
         try {
             const response = await fetch('http://localhost:5000/api/policies');
@@ -26,54 +24,66 @@ const AdminPage = () => {
         }
     };
 
-    // Fetch user policies from the server
     const fetchUserPolicies = async () => {
         try {
             const response = await fetch('http://localhost:5000/api/user-policies');
             const data = await response.json();
-            console.log(data);
-            setUserPolicies(data); // Store the fetched user policies
+            setUserPolicies(data);
         } catch (error) {
             console.error('Error fetching user policies:', error);
         }
     };
 
-    // Handle input changes for the form
     const handleInputChange = (e) => {
         const { name, value } = e.target;
         setFormData((prev) => ({ ...prev, [name]: value }));
     };
 
-    // Define the UserDetailsSection component
     const UserDetailsSection = ({ userPolicies }) => {
         return (
-            <div>
+            <UserPoliciesContainer>
                 <h2>User Policies</h2>
                 {userPolicies.length > 0 ? (
-                    <ul>
+                    <PoliciesGrid>
                         {userPolicies.map((policy, index) => (
-                            <li key={index}>
-                                <strong>Policy ID:</strong> {policy?.policyId || 'N/A'} <br />
-                                <strong>Policy Name:</strong> {policy?.policyName || 'N/A'} <br />
-                                <strong>Policy Holder:</strong> {policy?.policyHolder?.name || 'N/A'} <br />
-                                <strong>Email:</strong> {policy?.policyHolder?.email || 'N/A'} <br />
-                                <strong>Contact Number:</strong> {policy?.policyHolder?.contactNumber || 'N/A'} <br />
-                                <strong>Vehicle Type:</strong> {policy?.vehicleDetails?.vehicleType || 'N/A'} <br />
-                                <strong>Vehicle Number:</strong> {policy?.vehicleDetails?.vehicleNumber || 'N/A'} <br />
-                                <strong>Model:</strong> {policy?.vehicleDetails?.model || 'N/A'} <br />
-                                <strong>Policy Status:</strong> {policy?.policyStatus || 'N/A'}
-                            </li>
+                            <PolicyCard key={index}>
+                                <PolicyDetail>
+                                    <strong>Policy ID:</strong> {policy?.policyId || 'N/A'}
+                                </PolicyDetail>
+                                <PolicyDetail>
+                                    <strong>Policy Name:</strong> {policy?.policyName || 'N/A'}
+                                </PolicyDetail>
+                                <PolicyDetail>
+                                    <strong>Policy Holder:</strong> {policy?.policyHolder?.name || 'N/A'}
+                                </PolicyDetail>
+                                <PolicyDetail>
+                                    <strong>Email:</strong> {policy?.policyHolder?.email || 'N/A'}
+                                </PolicyDetail>
+                                <PolicyDetail>
+                                    <strong>Contact Number:</strong> {policy?.policyHolder?.contactNumber || 'N/A'}
+                                </PolicyDetail>
+                                <PolicyDetail>
+                                    <strong>Vehicle Type:</strong> {policy?.vehicleDetails?.vehicleType || 'N/A'}
+                                </PolicyDetail>
+                                <PolicyDetail>
+                                    <strong>Vehicle Number:</strong> {policy?.vehicleDetails?.vehicleNumber || 'N/A'}
+                                </PolicyDetail>
+                                <PolicyDetail>
+                                    <strong>Model:</strong> {policy?.vehicleDetails?.model || 'N/A'}
+                                </PolicyDetail>
+                                <PolicyDetail>
+                                    <strong>Policy Status:</strong> {policy?.policyStatus || 'N/A'}
+                                </PolicyDetail>
+                            </PolicyCard>
                         ))}
-                    </ul>
+                    </PoliciesGrid>
                 ) : (
                     <p>No user policies available.</p>
                 )}
-            </div>
+            </UserPoliciesContainer>
         );
     };
 
-    // Add new policy
-    // Add new policy
     const handleAddPolicy = async () => {
         const newPolicy = { ...formData };
 
@@ -86,12 +96,10 @@ const AdminPage = () => {
 
             if (response.ok) {
                 const addedPolicy = await response.json();
-                // Add the new policy to the list
                 setPolicies((prev) => [...prev, addedPolicy]);
-                // Reset the form after successful addition
                 resetForm();
             } else {
-                const errorMessage = await response.text(); // Get error message from response
+                const errorMessage = await response.text();
                 console.error('Error adding policy:', errorMessage);
                 alert(`Error adding policy: ${errorMessage}`);
             }
@@ -101,9 +109,6 @@ const AdminPage = () => {
         }
     };
 
-
-    // Delete selected policies
-    // Delete selected policy
     const handleDeletePolicy = async (id) => {
         const confirmed = window.confirm('Are you sure you want to delete this policy?');
         if (!confirmed) return;
@@ -114,7 +119,6 @@ const AdminPage = () => {
             });
 
             if (response.ok) {
-                // Remove the deleted policy from the list
                 setPolicies((prev) => prev.filter((policy) => policy._id !== id));
                 alert('Policy deleted successfully');
             } else {
@@ -128,30 +132,22 @@ const AdminPage = () => {
         }
     };
 
-
-    // Reset form data and close modal
     const resetForm = () => {
         setFormData({ title: '', description: '', price: '', terms: '' });
         setModalOpen(false);
         setSelectedPolicy(null);
     };
 
-    // Handle pie chart click to show details of the clicked policy
     const handlePieClick = (policyName) => {
         const policy = userPolicies.find((p) => p.policyName === policyName);
         setSelectedPolicy(policy);
     };
 
-    // Fetch policies or user policies based on activePage
     useEffect(() => {
-        if (activePage === 'home') {
-            fetchPolicies();
-        } else if (activePage === 'user') {
-            fetchUserPolicies(); // Fetch user policies when "User Details" is clicked
-        }
-    }, [activePage]);
+        fetchPolicies();
+        fetchUserPolicies();
+    }, []);
 
-    // Render PieChart (Doughnut chart now) when on the home page
     const countPolicies = () => {
         const policyCounts = userPolicies.reduce((acc, policy) => {
             acc[policy.policyName] = (acc[policy.policyName] || 0) + 1;
@@ -160,7 +156,6 @@ const AdminPage = () => {
         return policyCounts;
     };
 
-    // Render PieChart with the count of user policies
     const renderPieChart = () => {
         if (!userPolicies || userPolicies.length === 0) {
             return <p>No user policies available for chart</p>;
@@ -170,9 +165,9 @@ const AdminPage = () => {
         const data = Object.keys(policyCounts).map((policyName, index) => {
             const policy = policies.find(p => p._id === policyName);
             return {
-                name: policy?.Title || `${policyName}`, // Use policy name if available
-                value: policyCounts[policyName], // Number of users with this policy
-                color: COLORS[index % COLORS.length], // Cycle through colors
+                name: policy?.Title || `${policyName}`,
+                value: policyCounts[policyName],
+                color: COLORS[index % COLORS.length],
             };
         });
 
@@ -195,12 +190,14 @@ const AdminPage = () => {
             </PieChart>
         );
     };
+
     const ChartSection = styled.div`
         display: flex;
         justify-content: center;
         align-items: center;
         height: 400px;
     `;
+
     return (
         <Container>
             <Sidebar>
@@ -216,11 +213,7 @@ const AdminPage = () => {
             </Sidebar>
 
             <Content>
-                {activePage === 'home' && (
-                    <ChartSection>
-                        {renderPieChart()}
-                    </ChartSection>
-                )}
+                {activePage === 'home' && <ChartSection>{renderPieChart()}</ChartSection>}
 
                 {activePage === 'policy' && (
                     <>
@@ -231,7 +224,6 @@ const AdminPage = () => {
                         </ButtonWrapper>
 
                         <PolicyList>
-                            <h2>Policies</h2>
                             {policies.map((policy) => (
                                 <PolicyItem key={policy._id} onClick={() => handlePieClick(policy.Title)}>
                                     <PolicyTitle>
@@ -279,8 +271,7 @@ const AdminPage = () => {
                                         value={formData.terms}
                                         onChange={handleInputChange}
                                     />
-                                    <ActionButton onClick={handleAddPolicy}>Add</ActionButton>
-                                    <ActionButton onClick={resetForm}>Cancel</ActionButton>
+                                    <ActionButton onClick={handleAddPolicy}>Add Policy</ActionButton>
                                 </ModalContent>
                             </ModalOverlay>
                         )}
@@ -293,87 +284,117 @@ const AdminPage = () => {
     );
 };
 
-// Styled components for AdminPage
+// Styled Components
+
 const Container = styled.div`
     display: flex;
-    height: 100vh;
+    height: 100vh; /* Full viewport height */
+    width: 100%;
 `;
 
 const Sidebar = styled.div`
     width: 200px;
-    background-color: #f0f0f0;
+    background-color: #2c3e50;
+    display: flex;
+    flex-direction: column;
     padding: 20px;
-`;
-
-const SidebarButton = styled.button`
-    display: block;
-    width: 100%;
-    padding: 10px;
-    background-color: ${(props) => (props.active ? '#0088FE' : 'transparent')};
-    color: ${(props) => (props.active ? '#fff' : '#000')};
-    border: none;
-    margin-bottom: 10px;
-    cursor: pointer;
-    &:hover {
-        background-color: #0088FE;
-        color: white;
-    }
+    height: 100%; /* Full height of the parent container */
 `;
 
 const Content = styled.div`
     flex: 1;
     padding: 20px;
+    overflow-y: auto; /* Allow scrolling if content overflows */
+`;
+
+const SidebarButton = styled.button`
+    background: none;
+    color: ${(props) => (props.active ? '#3498db' : '#ecf0f1')};
+    border: none;
+    padding: 10px;
+    cursor: pointer;
+    text-align: left;
+    &:hover {
+        color: #3498db;
+    }
+`;
+
+const UserPoliciesContainer = styled.div`
+    margin-top: 20px;
+`;
+
+const PoliciesGrid = styled.div`
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 20px;
+`;
+
+const PolicyCard = styled.div`
+    border: 1px solid #bdc3c7;
+    border-radius: 5px;
+    padding: 15px;
+    background-color: #fff;
+`;
+
+const PolicyDetail = styled.div`
+    margin-bottom: 10px;
 `;
 
 const ButtonWrapper = styled.div`
     display: flex;
     justify-content: flex-end;
-    margin-bottom: 10px;
+    margin-bottom: 20px;
 `;
 
 const ActionButton = styled.button`
-    background-color: #0088fe;
-    border: none;
+    background-color: #3498db;
     color: white;
-    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    padding: 10px 15px;
     cursor: pointer;
-    border-radius: 4px;
+    display: flex;
+    align-items: center;
     &:hover {
-        background-color: #005f9e;
+        background-color: #2980b9;
+    }
+    &.add-policy {
+        background-color: #27ae60;
+        &:hover {
+            background-color: #219653;
+        }
     }
 `;
 
-const DeleteButton = styled.button`
-    background-color: red;
-    color: white;
-    border: none;
+const PolicyList = styled.ul`
+    list-style-type: none;
+    padding: 0;
+`;
+
+const PolicyItem = styled.li`
+    background-color: #ecf0f1;
+    padding: 15px;
+    margin: 10px 0;
+    border-radius: 5px;
     cursor: pointer;
-    padding: 5px;
-    border-radius: 4px;
-    margin-left: 10px;
-`;
-
-const PolicyList = styled.div`
-    display: flex;
-    flex-direction: column;
-`;
-
-const PolicyItem = styled.div`
-    padding: 10px;
-    border: 1px solid #ccc;
-    margin-bottom: 10px;
     display: flex;
     justify-content: space-between;
-    cursor: pointer;
 `;
 
-const PolicyTitle = styled.div`
-    flex: 1;
+const PolicyTitle = styled.span`
+    font-weight: bold;
 `;
 
 const ActionButtons = styled.div`
     display: flex;
-    justify-content: flex-end;
+    align-items: center;
+`;
+
+const DeleteButton = styled.button`
+    background: none;
+    border: none;
+    color: #e74c3c;
+    cursor: pointer;
 `;
 
 const ModalOverlay = styled.div`
@@ -382,24 +403,25 @@ const ModalOverlay = styled.div`
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: rgba(0, 0, 0, 0.5);
+    background: rgba(0, 0, 0, 0.5);
     display: flex;
     justify-content: center;
     align-items: center;
 `;
 
 const ModalContent = styled.div`
-    background-color: white;
+    background: white;
     padding: 20px;
-    border-radius: 4px;
+    border-radius: 8px;
+    width: 400px;
 `;
 
 const InputField = styled.input`
     width: 100%;
     padding: 10px;
-    margin-bottom: 10px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
+    margin: 10px 0;
+    border: 1px solid #bdc3c7;
+    border-radius: 5px;
 `;
 
 export default AdminPage;
